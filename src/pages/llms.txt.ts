@@ -15,6 +15,7 @@ export const GET = () => text([
   `- [OpenAPI](${SITE}/api/v1/openapi.json)`,
   `- [API docs](${SITE}/developers)`,
   `- [Licence and how to credit](${SITE}/license)`,
+  `- [All models](${SITE}/)`,
   `- [Every record in one file](${SITE}/llms-full.txt)`,
   '',
   '## Models',

@@ -1,7 +1,7 @@
 ---
-// Every page: the design-taste-frontend kit (public/kit, plain files) with the dealt palette and type,
-// the fixed centred nav and the statement footer. Deal: hero triptych, nav-centre, close-word,
-// footer-statement, rhythm space, buttons solid, mark dots, palette blue-black-cornflower, type geist.
+// Every page: the design-taste-frontend kit (public/kit, plain files) with the dealt palette and type.
+// buttons solid, mark dots, palette blue-black-cornflower, type geist. Pared down to the catalog: the
+// header holds the logo, the footer the directory.
 import '../styles/site.css';
 import geist from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 import geistMono from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
@@ -16,7 +16,7 @@ interface Props {
   type?: string;
   jsonld?: object[];
   alternates?: { type: string; href: string; title: string }[];
-  current?: 'assets' | 'license' | 'api';
+  current?: string;
   fragments?: string[];
   moments?: string[];
   noindex?: boolean;
@@ -26,12 +26,6 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '');
 const canonical = SITE + (path === '/' || path === '' ? '/' : path.replace(/\/$/, ''));
 const fonts = `@font-face{font-family:'Geist';font-style:normal;font-weight:100 900;font-display:swap;src:url(${geist}) format('woff2')}@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(${geistMono}) format('woff2')}`;
 const palette = `:root{--p-bg:#0a0d14;--p-surface:#131824;--p-ink:#e9edf3;--p-muted:#8891a1;--p-accent:#5ab9fc;--p-accent-ink:#0a0d14;--p-action:#5ab9fc;--p-action-ink:#0a0d14;--p-inv-bg:#e9edf3;--p-inv-surface:#d7dbe1;--p-inv-ink:#0a0d14;--p-inv-muted:#54575f;--p-inv-accent:#0a0d14;--p-inv-accent-ink:#e9edf3;--p-inv-action:#0a0d14;--p-inv-action-ink:#e9edf3;--font-display:"Geist",system-ui,sans-serif;--font-text:"Geist",system-ui,sans-serif;--font-mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;--display-weight:500;--display-tracking:-0.035em;--display-tracking-xl:-0.045em}`;
-const nav = [
-  { href: '/assets', label: 'Assets', key: 'assets' },
-  { href: '/license', label: 'License', key: 'license' },
-  { href: '/developers', label: 'API', key: 'api' },
-  { href: '/developers#mcp', label: 'MCP', key: 'mcp' },
-];
 const year = new Date().getFullYear();
 ---
 <!doctype html>
@@ -60,10 +54,7 @@ const year = new Date().getFullYear();
 <link rel="preload" href={geist} as="font" type="font/woff2" crossorigin>
 <style is:inline set:html={fonts}></style>
 <link rel="stylesheet" href="/kit/system.css">
-<link rel="stylesheet" href="/kit/ui/cards.css">
 <link rel="stylesheet" href="/kit/motion/motion.css">
-<link rel="stylesheet" href="/kit/layout/layout.css">
-<link rel="stylesheet" href="/kit/icons/icon.css">
 <style is:inline set:html={palette}></style>
 {fragments.length > 0 && <link rel="stylesheet" href="/kit/ui/base.css">}
 {fragments.map((f) => <link rel="stylesheet" href={`/kit/ui/${f}/fragment.css`}>)}
@@ -79,19 +70,10 @@ const year = new Date().getFullYear();
 <slot name="head" />
 </head>
 <body>
-<header class="nav nav--centre">
+<header class="nav">
   <div class="wrap nav__bar">
     <a class="skip-link" href="#top">Skip to content</a>
     <a class="nav__logo" href="/"><span class="mark" data-mark="dots" aria-hidden="true"></span>Cozu</a>
-    <nav class="nav__links" aria-label="Main">
-      {nav.map((n) => <div class="nav__item"><a class="nav__link" href={n.href} aria-current={current === n.key ? 'page' : undefined}>{n.label}</a></div>)}
-    </nav>
-    <div class="nav__actions">
-      <a class="btn btn--primary" href="/assets">Browse assets</a>
-    </div>
-    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    </button>
   </div>
 </header>
 
@@ -99,35 +81,19 @@ const year = new Date().getFullYear();
   <slot />
 </main>
 
-<footer class="footer closing footer--statement" aria-labelledby="close-h">
+<footer class="footer site-footer">
   <div class="wrap">
-    <div class="closing__cta close--word">
-      <div class="section-head--split">
-        <div><h2 id="close-h">Find a model for your next build</h2><p class="t-lead">Free for commercial work. No account needed.</p></div>
-        <a class="btn btn--primary" href="/assets">Browse assets<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
-      </div>
-      <p class="close__word" aria-hidden="true">Cozu</p>
+    <div class="grid">
+      <div class="span-4"><a class="nav__logo" href="/"><span class="mark" data-mark="dots" aria-hidden="true"></span>Cozu</a></div>
+      <div class="span-2 footer__col"><h3>Assets</h3><ul><li><a href="/">All assets</a></li>{categories.map((c) => <li><a href={`/categories/${c.id}`}>{c.name}</a></li>)}</ul></div>
+      <div class="span-2 footer__col"><h3>License</h3><ul><li><a href="/license">How to credit</a></li><li><a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></li></ul></div>
+      <div class="span-2 footer__col"><h3>Developers</h3><ul><li><a href="/developers">API</a></li><li><a href="/developers#mcp">MCP server</a></li><li><a href="/llms.txt">llms.txt</a></li></ul></div>
+      <div class="span-2 footer__col"><h3>Project</h3><ul><li><a href={REPO}>Source code</a></li><li><a href="/sitemap-index.xml">Sitemap</a></li></ul></div>
     </div>
-    <div class="closing__links">
-      <div class="grid">
-        <div class="span-4 stack-4">
-          <a class="nav__logo" href="/"><span class="mark" data-mark="dots" aria-hidden="true"></span>Cozu</a>
-          <p class="footer__lede">Free 3D models for games and apps.</p>
-        </div>
-        <div class="span-2 footer__col"><h3>Assets</h3><ul><li><a href="/assets">All assets</a></li>{categories.slice(0, 2).map((c) => <li><a href={`/categories/${c.id}`}>{c.name}</a></li>)}</ul></div>
-        <div class="span-2 footer__col"><h3>License</h3><ul><li><a href="/license">How to credit</a></li><li><a href="/license#terms">The terms</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>API</h3><ul><li><a href="/developers">Reference</a></li><li><a href="/api/v1/assets.json">Catalog JSON</a></li><li><a href="/llms.txt">llms.txt</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>MCP</h3><ul><li><a href="/developers#mcp">Connect an agent</a></li><li><a href={REPO}>Source code</a></li></ul></div>
-      </div>
-      <div class="footer__legal">
-        <span>&copy; {year} Cozu</span>
-        <div class="socials"></div>
-      </div>
-    </div>
+    <div class="footer__legal"><span>&copy; {year} Cozu</span></div>
   </div>
 </footer>
 <script type="module" is:inline src="/kit/system.js"></script>
 <script type="module" is:inline src="/kit/motion/motion.js"></script>
-<script type="module" is:inline src="/kit/layout/layout.js"></script>
 </body>
 </html>

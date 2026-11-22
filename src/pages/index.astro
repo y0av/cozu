@@ -1,310 +1,55 @@
 ---
-// Home. Plan (software): hero triptych · app-frame (the package's files beside its JSON record) ·
-// split (the licence, credit line marked) · agents on the inverse ground · FAQ ·
-// footer closing (close-word, footer-statement). One effect: grain-gradient on one collage piece.
-import { Image, getImage } from 'astro:assets';
+// Home: the catalog itself. Every asset as a tile, a search box and the categories.
+import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
-import { SITE, NAME, MCP_URL, fileUrl, assetPath, attribution, toApi, formatBytes } from '../lib/site.mjs';
-import { assets } from '../lib/assets.mjs';
+import AssetCard from '../components/AssetCard.astro';
+import { SITE, NAME, fileUrl, assetPath } from '../lib/site.mjs';
+import { assets, categories } from '../lib/assets.mjs';
 
-const a = assets[0];
-const api = toApi(a);
-const credit = attribution(a);
-const [front, rear] = a.previews;
-const src = (p) => fileUrl(a, p.file);
-const og = await getImage({ src: src(front), width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
-const n = (x) => x.toLocaleString('en-US');
-const dl = (file) => formatBytes(a.files.find((f) => f.path === file).bytes);
-
-const description = 'Free 3D models for games and apps, with LODs, rigs and collision in GLB and OBJ. Commercial use allowed with a credit link. No account. JSON API and MCP server for agents.';
+const latest = assets[0];
+const hero = latest.previews[0];
+const og = await getImage({ src: fileUrl(latest, hero.file), width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+const description = 'Free, game-ready 3D models in GLB and OBJ with LODs, rigs and collision. Free for commercial use with a credit link. No account.';
 const jsonld = [
   { '@context': 'https://schema.org', '@type': 'WebSite', name: NAME, url: SITE, description, inLanguage: 'en' },
   { '@context': 'https://schema.org', '@type': 'Organization', name: NAME, url: SITE, logo: `${SITE}/favicon.svg` },
-  {
-    '@context': 'https://schema.org', '@type': 'ItemList', name: 'Latest free 3D assets',
-    itemListElement: assets.slice(0, 12).map((x, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + assetPath(x.slug), name: x.title })),
-  },
+  { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Free 3D models', url: SITE,
+    mainEntity: { '@type': 'ItemList', itemListElement: assets.map((a, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + assetPath(a.slug), name: a.title })) } },
 ];
-
-// the library window: the package's files, models first
-const kindOf = (p) => (p.endsWith('.glb') ? 'GLB' : p.endsWith('.obj') ? 'OBJ' : p.endsWith('.mtl') ? 'MTL' : /\.(png|jpg)$/.test(p) ? (p.startsWith('previews/') ? 'Preview' : 'Texture') : 'Doc');
-const detail = {
-  'ravenhall_tractor.glb': `LOD0 · ${n(a.stats.lods[0])} triangles`,
-  'ravenhall_tractor_lod1.glb': `LOD1 · ${n(a.stats.lods[1])} triangles`,
-  'ravenhall_tractor_lod2.glb': `LOD2 · ${n(a.stats.lods[2])} triangles`,
-  'ravenhall_tractor_lod3.glb': `LOD3 · ${n(a.stats.lods[3])} triangles`,
-  'ravenhall_tractor_web.glb': 'LOD1, meshopt and WebP',
-  'ravenhall_tractor_rigged.glb': 'Skinned, a bone per part',
-  'ravenhall_tractor_rigged_lod1.glb': 'Skinned LOD1',
-  'ravenhall_tractor_collision.glb': 'Convex hulls, body',
-  'ravenhall_tractor_collision_wheels.glb': 'Convex hulls, wheels',
-  'obj/ravenhall_tractor.obj': 'OBJ with 26 materials',
-  'obj/ravenhall_tractor.mtl': 'Material library',
-  'spec.json': 'Sizes, axles, pivots',
-  'README.md': 'Setup per engine',
-};
-const tone = { GLB: 1, OBJ: 3, MTL: 3, Texture: 4, Preview: 5, Doc: 2 };
-const order = Object.keys(detail);
-const rows = order.map((p) => a.files.find((f) => f.path === p)).filter(Boolean)
-  .map((f) => ({ name: f.path.split('/').pop(), kind: kindOf(f.path), sub: detail[f.path], size: formatBytes(f.bytes) }));
-const count = (k) => a.files.filter((f) => kindOf(f.path) === k).length;
-
-// the open item: the asset's JSON record, as GET /api/v1/assets/<id>.json returns it
-const short = (s, k = 40) => (s.length > k ? s.slice(0, k) + '…' : s);
-const zip = api.downloads[0];
-const json = [
-  ['{'],
-  ['  ', 'id', api.id],
-  ['  ', 'title', api.title],
-  ['  ', 'category', api.category],
-  ['  ', 'version', api.version],
-  ['  ', 'page', api.page],
-  ['  ', 'license', '{'],
-  ['    ', 'id', api.license.id],
-  ['    ', 'attributionRequired', true],
-  ['    ', 'commercialUse', true, 'note:Free for commercial work.'],
-  ['  },'],
-  ['  ', 'attribution', '{'],
-  ['    ', 'text', credit.text, 'mark'],
-  ['  },'],
-  ['  ', 'formats', api.formats],
-  ['  ', 'stats', '{'],
-  ['    ', 'triangles', api.stats.triangles],
-  ['    ', 'lods', api.stats.lods, 'note:Four levels of detail, each a GLB.'],
-  ['    ', 'rigged', true],
-  ['    ', 'size_m', api.stats.size_m],
-  ['  },'],
-  ['  ', 'downloads', '['],
-  ['    {'],
-  ['      ', 'label', zip.label],
-  ['      ', 'bytes', zip.bytes],
-  ['      ', 'sha256', short(zip.sha256, 24), 'note:A checksum for every file.'],
-  ['      ', 'url', short(zip.url, 44), 'note:A direct link. No key, no account.'],
-  ['    },'],
-  ['    …'],
-];
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const val = (v) => {
-  if (v === '{' || v === '[') return v;
-  if (typeof v === 'boolean' || typeof v === 'number') return `<span class="n">${v}</span>`;
-  if (Array.isArray(v)) return '<span>[</span>' + v.map((x) => (typeof x === 'number' ? `<span class="n">${x}</span>` : `"${esc(x)}"`)).join(', ') + '<span>]</span>';
-  return `"${esc(v)}"`;
-};
-let ln = 1;
-const codeHtml = json.map(([ind, key, v, flag]) => {
-  const num = ln++;
-  const cls = flag === 'mark' ? ' is-mark' : '';
-  const note = flag && flag.startsWith('note:') ? ` data-note="${esc(flag.slice(5))}"` : '';
-  const body = key === undefined ? esc(ind) : `${ind}<span class="f">"${key}"</span>: ${val(v)}${v === '{' || v === '[' ? '' : ','}`;
-  return `<span class="ui-code__ln${cls}" data-n="${num}"${note}>${body}</span>`;
-}).join('\n');
+const words = (a) => [a.title, a.summary, a.category, ...a.tags, ...a.formats].join(' ').toLowerCase();
 ---
-<Base title="Cozu: free 3D models for games and apps" description={description} image={new URL(og.src, SITE).href} imageAlt={front.alt} jsonld={jsonld} fragments={['window', 'code', 'doc', 'terminal-run']}>
-
-  <section class="hero hero--triptych" data-enter aria-labelledby="hero-h">
-    <div class="wrap"><div class="hero-text grid hero__grid">
-      <div class="span-3">
-        <h1 id="hero-h">Free 3D models for games</h1>
-        <p class="hero__lead">Game-ready for apps, games and film, with LODs, rigs and collision in GLB and OBJ. Credit Cozu with one link.</p>
-      </div>
-      <div class="ly-collage span-6 start-4" role="img" aria-label={`${a.title}: two renders, its credit line, its downloads and an agent fetching it through the Cozu MCP server`}>
-        <div class="ly-collage__set is-on">
-          <div class="ly-piece" style="left: 16%; top: 44%; width: 80%; height: 52%"><Image src={src(front)} width={front.width} height={front.height} widths={[520, 1040]} sizes="(min-width: 1024px) 504px, 90vw" alt="" loading="eager" fetchpriority="high" style="object-position: 50% 60%" /></div>
-          <div class="ly-piece pc-stat" style="left: 62%; top: 8%; width: 34%">
-            <small>{a.title}</small>
-            <span class="pc-row"><i>Triangles</i><b>{n(a.stats.triangles)}</b></span>
-            <span class="pc-row"><i>LODs</i><b>{a.stats.lods.length}</b></span>
-            <span class="pc-row"><i>Rigged</i><b>Yes</b></span>
-          </div>
-          <div class="ly-piece pc-fx" data-fx="grain-gradient" data-fx-seed="7" style="left: 4%; top: 4%; width: 54%; height: 36%">
-            <div class="pc-credit"><small>Credit line</small><span>{a.title} by Cozu, CC BY 4.0</span><em>cozu.xyz/assets/{a.slug}</em></div>
-          </div>
+<Base title="Cozu: free 3D models for games and apps" description={description} image={new URL(og.src, SITE).href} imageAlt={hero.alt} jsonld={jsonld}>
+  <section class="section section--page" aria-labelledby="list-h">
+    <div class="wrap stack-6">
+      <div class="list-head">
+        <div class="page-head">
+          <h1 id="list-h">Free 3D models</h1>
+          <p class="muted">GLB and OBJ. Free for commercial use, credited with a link.</p>
         </div>
-        <div class="ly-collage__set" aria-hidden="true">
-          <div class="ly-piece" style="left: 16%; top: 4%; width: 80%; height: 48%"><Image src={src(rear)} width={rear.width} height={rear.height} widths={[520, 1040]} sizes="(min-width: 1024px) 504px, 90vw" alt="" style="object-position: 50% 60%" /></div>
-          <div class="ly-piece pc-files" style="left: 4%; top: 42%; width: 50%">
-            <small>Downloads</small>
-            {a.downloads.map((d) => <span class="pc-row"><b>{d.label}</b><i>{dl(d.file)}</i></span>)}
-          </div>
-          <div class="ly-piece" style="left: 60%; top: 58%; width: 36%; height: 38%"><Image src={src(front)} width={front.width} height={front.height} widths={[360, 720]} sizes="(min-width: 1024px) 226px, 40vw" alt="" style="object-position: 30% 60%" /></div>
-        </div>
-        <div class="ly-collage__set" aria-hidden="true">
-          <div class="ly-piece pc-term" style="left: 4%; top: 6%; width: 70%">
-            <small>Terminal</small>
-            <code><i>$</i> claude mcp add --transport http cozu {MCP_URL}</code>
-            <code><i>&gt;</i> find a free semi truck for my game</code>
-          </div>
-          <div class="ly-piece pc-files" style="left: 26%; top: 32%; width: 52%">
-            <small>search_assets · "semi truck"</small>
-            <span class="pc-row"><b>{a.title}</b><i>{a.license === 'CC-BY-4.0' ? 'CC BY 4.0' : a.license}</i></span>
-            <span class="pc-row"><b>Files</b><i>{a.files.length}</i></span>
-            <span class="pc-row"><b>Web GLB</b><i>{dl('ravenhall_tractor_web.glb')}</i></span>
-          </div>
-          <div class="ly-piece" style="left: 46%; top: 60%; width: 50%; height: 36%"><Image src={src(rear)} width={rear.width} height={rear.height} widths={[360, 720]} sizes="(min-width: 1024px) 314px, 45vw" alt="" style="object-position: 50% 62%" /></div>
+        <div class="list-tools">
+          <label class="search"><span class="sr-only">Search models</span><input type="search" id="q" placeholder="Search models" autocomplete="off"></label>
+          {categories.length > 1 && <nav class="cats" aria-label="Categories"><a href="/" aria-current="page">All</a>{categories.map((c) => <a href={`/categories/${c.id}`}>{c.name}</a>)}</nav>}
         </div>
       </div>
-      <div class="span-3 start-10 hero__cta"><a class="btn btn--primary" href="/assets">Browse assets</a></div>
-    </div></div>
-  </section>
-
-  <section class="section" id="library" aria-labelledby="library-h">
-    <div class="wrap">
-      <div class="grid">
-        <h2 class="span-5" id="library-h">Every model's files in one JSON record</h2>
-        <div class="span-6 start-7 stack-4">
-          <p class="t-lead">Each model ships with all its files: every LOD, rigged and collision models, OBJ and textures. Its record lists them with sizes, checksums and the credit line.</p>
-          <a class="link" href="/developers">Read the API reference</a>
-        </div>
+      <div class="grid assets-grid" id="list">
+        {assets.map((a, i) => <div class="span-4 list-item" data-words={words(a)}><AssetCard asset={a} eager={i < 3} span="" /></div>)}
       </div>
-      <div class="ui app fill" role="img" aria-label={`The ${a.title} package: its model files beside the asset's JSON record with the credit line marked`} data-ui-pause-host>
-        <div class="app__pane app__pane--list">
-          <div class="ui ui-panel ui-win" data-ui="window" data-open="Queued" data-work="Fetching" data-done="Ready">
-            <div class="ui-win__bar">
-              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="ui-win__crumb"><span class="mark" data-mark="dots" aria-hidden="true"></span>Vehicles <i>/</i> <b>{a.title}</b></span>
-              <span class="ui-spacer"></span>
-              <span class="ui-win__search" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span class="ui-win__ph">Search</span><span class="ui-kbd">/</span></span>
-            </div>
-            <div class="ui-win__body">
-              <nav class="ui-win__side" aria-hidden="true">
-                <span class="ui-win__nav is-on">Files<em>{a.files.length}</em></span>
-                <span class="ui-win__nav">GLB<em>{count('GLB')}</em></span>
-                <span class="ui-win__nav">Textures<em>{count('Texture')}</em></span>
-                <span class="ui-win__nav">Docs<em>{count('Doc')}</em></span>
-                <span class="ui-win__label">Engines</span>
-                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Godot</span>
-                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Unreal</span>
-              </nav>
-              <div class="ui-win__main">
-                <div class="ui-win__cols" aria-hidden="true"><span>File</span><span>Contents</span><span>Type</span><span>Size</span></div>
-                <ul class="ui-win__rows">
-                  {rows.map((r, i) => (
-                    <li class={`ui-win__row${i === 0 ? ' is-sel' : ''}`} data-row><span class="ui-avatar" data-tone={tone[r.kind]}>{r.kind.slice(0, 2).toUpperCase()}</span><span class="ui-win__who">{r.name}</span><span class="ui-win__sub">{r.sub}</span><span class={`ui-win__st${r.kind === 'GLB' ? ' is-done' : ''}`} data-st>{r.kind}</span><span class="ui-win__age">{r.size}</span></li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="app__pane app__pane--open" data-ui-loop>
-          <div class="ui ui-panel ui-code" data-ui="code">
-            <div class="ui-code__tabs">
-              <span class="ui-code__tab is-on"><i class="ui-code__lang">{'{}'}</i>{a.slug}.json</span>
-              <span class="ui-code__tab"><i class="ui-code__lang">{'{}'}</i>assets.json</span>
-              <span class="ui-spacer"></span>
-              <span class="ui-chip ui-chip--plain ui-code__chip" data-code-chip>GET 200</span>
-            </div>
-            <pre class="ui-code__pre"><code set:html={codeHtml}></code></pre>
-            <div class="ui-code__hint" data-code-hint><span class="ui-dot"></span><span data-code-text>The credit line to paste into your credits.</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="credit" aria-labelledby="credit-h">
-    <div class="wrap">
-      <div class="grid grid--top fill">
-      <div class="span-5 stack-5">
-        <h2 id="credit-h">Free for commercial work. Credit it in one line.</h2>
-        <p class="t-lead">Use the models in games, apps, films and client work, and change them as you like. Put the credit line where your project lists its credits.</p>
-        <div class="facts">
-          <p>Commercial use: yes</p>
-          <p>Changes: yes, say you made them</p>
-          <p>Account: none</p>
-        </div>
-        <a class="link" href="/license">How to credit an asset</a>
-      </div>
-      <div class="frame frame--fill frame--lit span-6 start-7" role="img" aria-label={`The licence file that ships with ${a.title}, its credit line marked`}>
-        <div class="stage stage--fade-br">
-          <div class="at-corner to-edge" style="--ax: 56px; --ay: 56px">
-            <div class="ui ui-doc" data-ui="doc">
-              <article class="ui-doc__page">
-                <div class="ui-doc__label">LICENSE.txt · {a.title}</div>
-                <div class="ui-doc__title">Creative Commons Attribution 4.0</div>
-                <div class="ui-doc__text">You may copy, modify, distribute and use this work, including for commercial purposes, as long as you give credit.</div>
-                <div class="ui-doc__text">Credit it where your project lists credits (credits screen, about page, README or site footer) with <mark class="ui-doc__mark is-on">this line, keeping the link</mark>.</div>
-                <div class="ui-doc__text">On a web page, make it a link to the asset page, to Cozu and to the licence.</div>
-                <div class="ui-doc__text">If you changed the model, say so (<mark class="ui-doc__mark" data-kind="Changes" data-msg="Add “modified” to the credit line." data-where="LICENSE.txt">modified</mark>). Do not suggest that Cozu endorses you or your use.</div>
-                <div class="ui-doc__text">"Ravenhall" and the logos on the model are fictional and belong to no real company.</div>
-              </article>
-              <aside class="ui-doc__note ui-panel is-on" aria-live="polite">
-                <div class="ui-doc__kind"><span class="ui-doc__dot"></span><span data-doc-kind>Credit</span></div>
-                <div class="ui-doc__msg" data-doc-msg>The asset page has the line ready to copy.</div>
-                <div class="ui-doc__where" data-doc-where>Asset page, Credit section</div>
-              </aside>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
-  </section>
-
-  <section class="section ground-inverse" id="agents" aria-labelledby="agents-h">
-    <div class="wrap">
-      <div class="section-head section-head--row">
-        <div><h2 id="agents-h">Agents can find, fetch and credit models</h2><p class="t-lead">One MCP server and a JSON API, with no key and no account.</p></div>
-        <a class="link" href="/developers#mcp">Connect an agent</a>
-      </div>
-      <div class="frame frame--lit fill" role="img" aria-label="A terminal where an agent searches Cozu, fetches the truck's web GLB and writes its credit line">
-        <div class="stage stage--fade-b">
-          <div class="at-rise fit" style="--fit-max: 720px; --ax: max(24px, 50% - 360px); --ay: 56px">
-            <div class="ui ui-panel ui-term" data-ui="terminal-run">
-              <div class="ui-term__head">
-                <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                <span class="ui-term__title">my-game</span>
-                <span class="ui-meta">claude</span>
-                <span class="ui-spacer"></span>
-                <span class="ui-chip ui-chip--plain ui-term__branch">cozu mcp</span>
-              </div>
-              <div class="ui-term__screen" data-term-screen>
-                <div class="ui-term__track" data-term-track>
-                  <div class="ui-term__ln ui-term__cmd"><span class="ui-term__cwd">~/<span class="ui-term__up">dev/</span>my-game</span><span class="ui-term__sig">&gt;</span><span class="ui-term__typed" data-term-cmd>add a free semi truck to the depot scene</span></div>
-                  <div class="ui-term__ln ui-term__meter" data-term-out data-term-meter><span class="ui-term__bar" style="--p:1"><i></i></span><span class="ui-term__count" data-term-count>4 of 4 calls</span></div>
-                  <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">search_assets</span><span class="ui-term__n">"semi truck"</span><span class="ui-term__t">1 hit</span></div>
-                  <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">get_asset</span><span class="ui-term__n">{a.slug}, {a.files.length} files</span><span class="ui-term__t">{a.version}</span></div>
-                  <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">download</span><span class="ui-term__n">web GLB, sha256 ok</span><span class="ui-term__t">{dl('ravenhall_tractor_web.glb')}</span></div>
-                  <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">get_attribution</span><span class="ui-term__n">{a.slug}</span><span class="ui-term__t">CC BY</span></div>
-                  <div class="ui-term__ln ui-term__gap" data-term-out aria-hidden="true"></div>
-                  <div class="ui-term__ln ui-term__sum" data-term-out><span class="ui-term__key">Model</span><span class="ui-term__val">assets/trucks/ravenhall.glb</span></div>
-                  <div class="ui-term__ln ui-term__sum" data-term-out><span class="ui-term__key">Credit</span><span class="ui-term__val">added to CREDITS.md</span></div>
-                  <div class="ui-term__ln ui-term__done" data-term-out data-term-done><span class="ui-term__ok"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.3 2.4 2.4 4.6-5"/></svg></span><b>Done</b><span class="ui-term__dim">no key, no account</span></div>
-                  <div class="ui-term__ln ui-term__cmd" data-term-next><span class="ui-term__cwd">~/<span class="ui-term__up">dev/</span>my-game</span><span class="ui-term__sig">&gt;</span><span class="ui-term__typed"></span><i class="ui-term__caret" aria-hidden="true"></i></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="faq" aria-labelledby="faq-h">
-    <div class="wrap grid">
-      <div class="span-5 stack-4">
-        <h2 id="faq-h">Questions</h2>
-        <p class="t-lead">Something missing? Ask on GitHub.</p>
-        <a class="link" href="https://github.com/y0av/cozu/issues">Open an issue</a>
-        <div class="engines">
-          <p class="t-label">The models open in</p>
-          <div class="engines__row ic-dark">
-            <img class="ic ic-32" loading="lazy" src="/icons/godot.svg" alt="Godot" width="34" height="32">
-            <img class="ic ic-32" loading="lazy" src="/icons/blender.svg" alt="Blender" width="39" height="32">
-            <img class="ic ic-32 ic-ink" loading="lazy" src="/icons/unity.svg" alt="Unity" width="31" height="32">
-            <img class="ic ic-32 ic-ink" loading="lazy" src="/icons/unrealengine.svg" alt="Unreal Engine" width="32" height="32">
-            <img class="ic ic-32 ic-ink" loading="lazy" src="/icons/threejs.svg" alt="three.js" width="32" height="32">
-          </div>
-        </div>
-      </div>
-      <div class="faq span-6 start-7">
-        <div class="faq__item"><h3>Can I use the models in a paid game?</h3><p>Yes. Every asset is free for commercial and personal work, as long as you credit Cozu.</p></div>
-        <div class="faq__item"><h3>What goes in the credit for a model?</h3><p>The model's name, Cozu, a link to the asset page and the licence. Each asset page gives the line as text, HTML and Markdown.</p></div>
-        <div class="faq__item"><h3>Where do I put the credit in my game?</h3><p>Wherever your project lists credits: a credits screen, an about page, a store page, a README or a video description.</p></div>
-        <div class="faq__item"><h3>Do I need an account to download models?</h3><p>No. Downloads, the JSON API and the MCP server are open to everyone, with no key.</p></div>
-        <div class="faq__item"><h3>Which engines open the models?</h3><p>GLB opens in Godot, Blender, three.js and Babylon.js, in Unreal through its glTF importer and in Unity with the glTFast package. OBJ with textures is in the full package.</p></div>
-        <div class="faq__item"><h3>Can I change a model?</h3><p>Yes. Re-texture it, cut it up or merge it into your own. Add "modified" to the credit line.</p></div>
-      </div>
+      <p class="muted" id="none" hidden>No model matches that yet.</p>
     </div>
   </section>
 </Base>
+<script>
+  const q = document.getElementById('q') as HTMLInputElement;
+  const items = [...document.querySelectorAll<HTMLElement>('.list-item')];
+  const none = document.getElementById('none')!;
+  const run = () => {
+    const terms = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const it of items) { const ok = terms.every((t) => it.dataset.words!.includes(t)); it.hidden = !ok; if (ok) shown++; }
+    none.hidden = shown > 0;
+  };
+  const start = new URLSearchParams(location.search).get('q');
+  if (start) q.value = start;
+  q.addEventListener('input', run);
+  run();
+</script>

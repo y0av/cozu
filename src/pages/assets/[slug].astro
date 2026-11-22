@@ -64,7 +64,7 @@ const jsonld = [
   },
   {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Assets', item: `${SITE}/assets` },
+      { '@type': 'ListItem', position: 1, name: 'Assets', item: `${SITE}/` },
       { '@type': 'ListItem', position: 2, name: categoryName(asset.category), item: `${SITE}/categories/${asset.category}` },
       { '@type': 'ListItem', position: 3, name: asset.title, item: page },
     ],
@@ -102,12 +102,12 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
         ))}
       </div>
       <div class="span-5 asset-facts" data-enter>
-        <nav class="crumbs" aria-label="Breadcrumb"><a href="/assets">Assets</a><span aria-hidden="true">/</span><a href={`/categories/${asset.category}`}>{categoryName(asset.category)}</a></nav>
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Assets</a><span aria-hidden="true">/</span><a href={`/categories/${asset.category}`}>{categoryName(asset.category)}</a></nav>
         <h1 id="asset-h">{asset.title}</h1>
         <p class="t-lead muted">{asset.summary}</p>
         <div class="btn-row">
           <a class="btn btn--primary" href={primary.url} download>Download {primary.label.toLowerCase()}</a>
-          <a class="link" href="#downloads">{formatBytes(primary.bytes)} · other files</a>
+          <a class="link" href="#downloads">{formatBytes(primary.bytes)} · all files</a>
         </div>
         <dl class="specs">
           {facts.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
@@ -119,10 +119,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
 
   <section class="section section--page" id="downloads" aria-labelledby="dl-h">
     <div class="wrap grid">
-      <div class="span-5 stack-4">
-        <h2 id="dl-h">Downloads</h2>
-        <p class="t-lead muted">Direct links, no account. Every file has a SHA-256 checksum in the list below and in the <a class="link" href={`/api/v1/assets/${asset.slug}.json`}>JSON record</a>.</p>
-      </div>
+      <div class="span-5"><h2 id="dl-h">Downloads</h2></div>
       <div class="span-7">
         <ul class="dl-list">
           {downloads.map((d) => (
@@ -152,8 +149,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
     <div class="wrap grid">
       <div class="span-5 stack-4">
         <h2 id="credit-h">Credit this asset</h2>
-        <p class="t-lead muted">{asset.title} is under <a class="link" href={lic.url}>{lic.short}</a>. Use it in anything, commercial or not, and put this line where your project lists credits. Keep the link. If you changed the model, add "modified".</p>
-        <a class="link" href="/license">More on crediting</a>
+        <p class="muted">Required by <a class="link" href={lic.url}>{lic.short}</a>. Keep the link. <a class="link" href="/license">How to credit</a></p>
       </div>
       <div class="span-7"><Credit asset={asset} /></div>
     </div>
@@ -164,7 +160,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
       <div class="span-5 stack-4">
         <h2 id="about-h">About the model</h2>
         {asset.description.map((p) => <p class="muted">{p}</p>)}
-        <div class="tags">{asset.tags.map((t) => <a href={`/assets?q=${encodeURIComponent(t)}`}>{t}</a>)}</div>
+        <div class="tags">{asset.tags.map((t) => <a href={`/?q=${encodeURIComponent(t)}`}>{t}</a>)}</div>
       </div>
       <dl class="specs span-7">
         {specs.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
@@ -175,10 +171,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
   {readme && (
     <section class="section section--page" id="docs" aria-labelledby="docs-h">
       <div class="wrap grid">
-        <div class="span-5 stack-4">
-          <h2 id="docs-h">Documentation</h2>
-          <p class="muted">The README from the package. For agents: <a class="link" href={`/api/v1/assets/${asset.slug}.json`}>this asset as JSON</a> or <a class="link" href={`/assets/${asset.slug}.md`}>as Markdown</a>.</p>
-        </div>
+        <div class="span-5"><h2 id="docs-h">Documentation</h2></div>
         <div class="span-7 prose" set:html={readme} />
       </div>
     </section>
@@ -195,6 +188,8 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
     viewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     viewer.setAttribute('aria-busy', 'true');
     await import('@google/model-viewer');
+    // the web GLB is meshopt-compressed: model-viewer needs its decoder script before it loads one
+    (customElements.get('model-viewer') as any).meshoptDecoderLocation = '/vendor/meshopt_decoder.js';
     const mv = document.createElement('model-viewer');
     for (const [k, v] of Object.entries({
       src: viewer.dataset.model, poster: viewer.dataset.poster, alt: viewer.dataset.alt, 'camera-controls': '', 'touch-action': 'pan-y',

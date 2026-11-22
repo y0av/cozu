@@ -1,0 +1,49 @@
+# Builds the site and deploys it to Firebase Hosting on every push to main.
+# Auth is keyless: GitHub's OIDC token is exchanged for the github-deploy service account through
+# Workload Identity Federation, which only trusts this repository (y0av/cozu).
+# The Cloud Function and Storage rules are deployed by hand with `npm run deploy`.
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Astro keeps its resized preview images here; reusing them skips re-encoding unchanged renders
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.astro
+          key: astro-${{ hashFiles('src/content/assets/*.json') }}
+          restore-keys: astro-
+
+      - run: npm run build
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/862944936571/locations/global/workloadIdentityPools/github/providers/github-oidc
+          service_account: github-deploy@cozu-a.iam.gserviceaccount.com
+
+      - name: Deploy to Firebase Hosting
+        run: npx -y firebase-tools@15.29.0 deploy --only hosting --project cozu-a --non-interactive --message "deploy ${GITHUB_SHA::7}"

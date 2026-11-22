@@ -74,7 +74,7 @@ function mcpServer() {
   }, async (args) => {
     const data = await catalog();
     const results = search(data, args);
-    return asText({ count: results.length, results, note: results.length ? 'Credit each model you use with its attribution line.' : 'No match yet. New models are added often; see https://cozu.xyz/assets.' });
+    return asText({ count: results.length, results, note: results.length ? 'Credit each model you use with its attribution line.' : 'No match yet. New models are added often; see https://cozu.xyz.' });
   });
   server.registerTool('get_asset', {
     title: 'Get a model',
