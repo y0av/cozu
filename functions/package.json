@@ -1,0 +1,15 @@
+{
+  "name": "cozu-functions",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "firebase-functions": "7.4.0",
+    "zod": "^3.25.76"
+  }
+}

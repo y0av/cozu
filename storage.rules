@@ -1,0 +1,13 @@
+rules_version = '2';
+// Published assets are public and read-only; everything else is closed. Uploads go through the admin tools.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /assets/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "cozu",
+  "title": "Cozu free 3D models",
+  "description": "Search, download and credit free, game-ready 3D models (GLB, OBJ) under CC BY 4.0. No key.",
+  "url": "https://cozu.xyz/mcp",
+  "transport": "streamable-http",
+  "authentication": "none",
+  "tools": ["search_assets", "get_asset", "get_attribution", "list_categories"],
+  "documentation": "https://cozu.xyz/developers"
+}

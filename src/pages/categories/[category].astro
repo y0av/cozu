@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import AssetCard from '../../components/AssetCard.astro';
+import { SITE, assetPath } from '../../lib/site.mjs';
+import { assets, categories } from '../../lib/assets.mjs';
+
+export function getStaticPaths() {
+  return categories.map((c) => ({ params: { category: c.id }, props: { cat: c } }));
+}
+const { cat } = Astro.props;
+const list = assets.filter((a) => a.category === cat.id);
+const jsonld = [
+  { '@context': 'https://schema.org', '@type': 'CollectionPage', name: `Free 3D ${cat.name.toLowerCase()}`, url: `${SITE}/categories/${cat.id}`,
+    mainEntity: { '@type': 'ItemList', itemListElement: list.map((a, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + assetPath(a.slug), name: a.title })) } },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Assets', item: `${SITE}/assets` },
+    { '@type': 'ListItem', position: 2, name: cat.name, item: `${SITE}/categories/${cat.id}` } ] },
+];
+---
+<Base title={`Free 3D ${cat.name.toLowerCase()} models | Cozu`} description={`Free, game-ready 3D ${cat.name.toLowerCase()} in GLB and OBJ, with LODs and rigs. Free for commercial use with a credit link to Cozu.`} jsonld={jsonld} current="assets">
+  <section class="section section--page" aria-labelledby="cat-h">
+    <div class="wrap stack-6">
+      <div class="page-head">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="/assets">Assets</a><span aria-hidden="true">/</span><span>{cat.name}</span></nav>
+        <h1 id="cat-h">Free 3D {cat.name.toLowerCase()}</h1>
+        <p class="t-lead">{list.length} {list.length === 1 ? 'model' : 'models'}, free for commercial work with a credit link.</p>
+      </div>
+      <div class="grid assets-grid">
+        {list.map((a, i) => <AssetCard asset={a} eager={i < 3} />)}
+      </div>
+    </div>
+  </section>
+</Base>

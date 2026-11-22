@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, NAME, REPO } from '../lib/site.mjs';
+import { assets } from '../lib/assets.mjs';
+import { attribution } from '../lib/site.mjs';
+const ex = attribution(assets[0]);
+const jsonld = [{ '@context': 'https://schema.org', '@type': 'WebPage', name: 'How to credit Cozu assets', url: `${SITE}/license`, about: { '@type': 'CreativeWork', license: 'https://creativecommons.org/licenses/by/4.0/' } }];
+---
+<Base title="License: how to credit Cozu models (CC BY 4.0) | Cozu" description="Cozu models are free under CC BY 4.0: use them in commercial games, apps and films, change them, and credit Cozu with one line and a link to the asset page." jsonld={jsonld} current="license">
+  <section class="section section--page" aria-labelledby="lic-h">
+    <div class="wrap grid">
+      <div class="span-5 page-head">
+        <h1 id="lic-h">Free to use, credited with one line</h1>
+        <p class="t-lead">Cozu models are under Creative Commons Attribution 4.0 (CC BY 4.0) unless their page says otherwise. Use them in anything, commercial or not, and credit them.</p>
+      </div>
+      <div class="span-7 prose">
+        <h2>What you can do</h2>
+        <ul>
+          <li>Use the models in commercial and personal games, apps, films, renders, ads and client work.</li>
+          <li>Change them: re-texture, cut up, merge, rig, animate or convert them.</li>
+          <li>Share them, original or changed, as long as the credit goes with them.</li>
+        </ul>
+        <h2>The credit</h2>
+        <p>Each asset page has its credit line, ready to copy. It names the model, Cozu, the licence and links to the asset page. For the Ravenhall Tractor:</p>
+        <pre>{ex.text}</pre>
+        <p>On a web page, make the names links:</p>
+        <pre>{ex.html}</pre>
+        <p>CC BY 4.0 lets the author ask for the credit in a reasonable form and for a link to the work where that is practical. The link to the asset page is the part we ask you to keep.</p>
+        <h2>Where it goes</h2>
+        <p>Wherever your project lists its credits: a game's credits screen, an app's about or licences page, a store page, a website footer, a README, or a video's description. One line per model.</p>
+        <h2>If you changed the model</h2>
+        <p>Say so: add "modified" to the line, for example "Ravenhall Tractor (modified) by Cozu".</p>
+        <h2 id="terms">The terms</h2>
+        <p>The full licence is <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0's legal code</a>, with a <a href="https://creativecommons.org/licenses/by/4.0/">plain summary</a>. Two of its conditions matter most in practice: do not suggest that Cozu endorses you or your project, and do not add terms or DRM that stop others from using the model under the same licence. Every package also ships a LICENSE.txt with its own credit line.</p>
+        <p>Names and logos on the models, like "Ravenhall", are fictional and belong to no real company.</p>
+        <h2>The site's code</h2>
+        <p>The code of this site is open source under the MIT licence, on <a href={REPO}>GitHub</a>. The models are not in that repository; they are served from {NAME}'s file storage.</p>
+      </div>
+    </div>
+  </section>
+</Base>

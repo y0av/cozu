@@ -1,0 +1,18 @@
+---
+import { Image } from 'astro:assets';
+import { fileUrl, assetPath, LICENSES } from '../lib/site.mjs';
+import { categoryName } from '../lib/assets.mjs';
+
+interface Props { asset: any; eager?: boolean; span?: string }
+const { asset, eager = false, span = 'span-4' } = Astro.props;
+const p = asset.previews[0];
+---
+<a class={`tile tile--wide ${span}`} href={assetPath(asset.slug)}>
+  <div class="tile__media">
+    <Image src={fileUrl(asset, p.file)} width={p.width} height={p.height} alt={p.alt}
+      widths={[480, 720, 960]} sizes="(min-width: 1280px) 410px, (min-width: 640px) 45vw, 100vw"
+      loading={eager ? 'eager' : 'lazy'} decoding="async" />
+  </div>
+  <div class="tile__head"><h3>{asset.title}</h3><span class="tile__price">{LICENSES[asset.license].short}</span></div>
+  <p class="tile__facts">{categoryName(asset.category)} · {asset.formats.join(', ')}{asset.stats?.triangles ? ` · ${Math.round(asset.stats.triangles / 1000)}k triangles` : ''}</p>
+</a>

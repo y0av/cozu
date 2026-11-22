@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, MCP_URL } from '../lib/site.mjs';
+import { assets } from '../lib/assets.mjs';
+const a = assets[0];
+const desktop = JSON.stringify({ mcpServers: { cozu: { type: 'http', url: MCP_URL } } }, null, 2);
+const jsonld = [{ '@context': 'https://schema.org', '@type': 'TechArticle', name: 'Cozu API and MCP server', url: `${SITE}/developers`, about: 'Search and download free 3D models from an agent or a script' }];
+const tools = [
+  ['search_assets', 'query, category, format, limit', 'Finds models by words, category (vehicles, props...) and format (GLB, OBJ). Returns each match with its page, licence, credit line and main downloads.'],
+  ['get_asset', 'id', 'The full record of one model: every file with its URL, size and SHA-256, the stats, previews and the credit line.'],
+  ['get_attribution', 'id, format', 'The credit line to add to your project, as text, HTML or Markdown.'],
+  ['list_categories', '', 'The categories with how many models each holds.'],
+];
+const rest = [
+  ['GET', '/api/v1/assets.json', 'The whole catalog: every model as a full record.'],
+  ['GET', `/api/v1/assets/{id}.json`, `One model, for example /api/v1/assets/${a.slug}.json.`],
+  ['GET', '/api/v1/search?q=truck&category=vehicles&format=GLB&limit=10', 'Search, the same as the MCP tool.'],
+  ['GET', '/api/v1/openapi.json', 'The OpenAPI 3.1 description of these endpoints.'],
+  ['GET', `/assets/{id}.md`, 'A model\'s page as Markdown.'],
+  ['GET', '/llms.txt', 'A short index for language models; /llms-full.txt holds every record.'],
+];
+---
+<Base title="API and MCP server for free 3D models | Cozu" description="Search and download Cozu's free 3D models from agents and scripts: an MCP server at cozu.xyz/mcp and a JSON API, with no key and no account." jsonld={jsonld} current="api">
+  <section class="section section--page" aria-labelledby="dev-h">
+    <div class="wrap grid">
+      <div class="span-5 page-head">
+        <h1 id="dev-h">The API and MCP server</h1>
+        <p class="t-lead">Agents and scripts can search the models, download their files and get the credit line. No key, no account, no rate card.</p>
+      </div>
+      <div class="span-7 prose">
+        <h2 id="mcp">Connect an agent</h2>
+        <p>The MCP server speaks Streamable HTTP at <code>{MCP_URL}</code>. In Claude Code:</p>
+        <pre>claude mcp add --transport http cozu {MCP_URL}</pre>
+        <p>In clients configured with JSON (Claude Desktop, Cursor, VS Code and others):</p>
+        <pre>{desktop}</pre>
+        <h2 id="tools">Tools</h2>
+        <table>
+          <thead><tr><th>Tool</th><th>Arguments</th><th>What it returns</th></tr></thead>
+          <tbody>{tools.map(([n, args, d]) => <tr><td><code>{n}</code></td><td>{args || 'none'}</td><td>{d}</td></tr>)}</tbody>
+        </table>
+        <p>An agent that adds a model to a project should also add its credit line to the project's credits, for example a CREDITS.md file. <code>get_attribution</code> returns it ready to paste.</p>
+        <h2 id="rest">JSON API</h2>
+        <p>Plain HTTPS with open CORS, so it works from a browser too. Base URL <code>{SITE}</code>.</p>
+        <table>
+          <thead><tr><th>Request</th><th>Returns</th></tr></thead>
+          <tbody>{rest.map(([m, p, d]) => <tr><td><code>{m} {p}</code></td><td>{d}</td></tr>)}</tbody>
+        </table>
+        <pre>curl -s {SITE}/api/v1/assets/{a.slug}.json</pre>
+        <h2 id="files">Downloading files</h2>
+        <p>Every file URL in a record is a direct download from Cozu's storage: no redirects through the site and no sign-in. Each file lists its size in bytes and its SHA-256, so a script can check what it got. A model's files never change under the same version number; a fix ships as a new version with its own URLs.</p>
+        <h2 id="limits">Fair use</h2>
+        <p>There is no key and no hard limit. Cache the catalog rather than fetching it on every request, and download a package once rather than per build.</p>
+      </div>
+    </div>
+  </section>
+</Base>

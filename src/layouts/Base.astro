@@ -1,0 +1,134 @@
+---
+// Every page: the design-taste-frontend kit (public/kit, plain files) with the dealt palette and type,
+// the fixed centred nav and the statement footer. Deal: hero triptych, nav-centre, close-word,
+// footer-statement, rhythm space, buttons solid, mark dots, palette blue-black-cornflower, type geist.
+import '../styles/site.css';
+import geist from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
+import geistMono from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
+import { SITE, NAME, REPO } from '../lib/site.mjs';
+import { categories } from '../lib/assets.mjs';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  imageAlt?: string;
+  type?: string;
+  jsonld?: object[];
+  alternates?: { type: string; href: string; title: string }[];
+  current?: 'assets' | 'license' | 'api';
+  fragments?: string[];
+  moments?: string[];
+  noindex?: boolean;
+}
+const { title, description, image, imageAlt, type = 'website', jsonld = [], alternates = [], current, fragments = [], moments = [], noindex } = Astro.props;
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '');
+const canonical = SITE + (path === '/' || path === '' ? '/' : path.replace(/\/$/, ''));
+const fonts = `@font-face{font-family:'Geist';font-style:normal;font-weight:100 900;font-display:swap;src:url(${geist}) format('woff2')}@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(${geistMono}) format('woff2')}`;
+const palette = `:root{--p-bg:#0a0d14;--p-surface:#131824;--p-ink:#e9edf3;--p-muted:#8891a1;--p-accent:#5ab9fc;--p-accent-ink:#0a0d14;--p-action:#5ab9fc;--p-action-ink:#0a0d14;--p-inv-bg:#e9edf3;--p-inv-surface:#d7dbe1;--p-inv-ink:#0a0d14;--p-inv-muted:#54575f;--p-inv-accent:#0a0d14;--p-inv-accent-ink:#e9edf3;--p-inv-action:#0a0d14;--p-inv-action-ink:#e9edf3;--font-display:"Geist",system-ui,sans-serif;--font-text:"Geist",system-ui,sans-serif;--font-mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;--display-weight:500;--display-tracking:-0.035em;--display-tracking-xl:-0.045em}`;
+const nav = [
+  { href: '/assets', label: 'Assets', key: 'assets' },
+  { href: '/license', label: 'License', key: 'license' },
+  { href: '/developers', label: 'API', key: 'api' },
+  { href: '/developers#mcp', label: 'MCP', key: 'mcp' },
+];
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang="en" data-type="software" data-radius="soft" data-ground="sky" data-buttons="solid" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{title}</title>
+<meta name="description" content={description}>
+<link rel="canonical" href={canonical}>
+{noindex && <meta name="robots" content="noindex">}
+<meta property="og:site_name" content={NAME}>
+<meta property="og:type" content={type}>
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta property="og:url" content={canonical}>
+{image && <meta property="og:image" content={image}>}
+{image && <meta property="og:image:width" content="1200">}
+{image && <meta property="og:image:height" content="630">}
+{imageAlt && <meta property="og:image:alt" content={imageAlt}>}
+<meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'}>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0a0d14">
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="preload" href={geist} as="font" type="font/woff2" crossorigin>
+<style is:inline set:html={fonts}></style>
+<link rel="stylesheet" href="/kit/system.css">
+<link rel="stylesheet" href="/kit/ui/cards.css">
+<link rel="stylesheet" href="/kit/motion/motion.css">
+<link rel="stylesheet" href="/kit/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="/kit/layout/layout.css">
+<link rel="stylesheet" href="/kit/icons/icon.css">
+<style is:inline set:html={palette}></style>
+{fragments.length > 0 && <link rel="stylesheet" href="/kit/ui/base.css">}
+{fragments.map((f) => <link rel="stylesheet" href={`/kit/ui/${f}/fragment.css`}>)}
+<script is:inline>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+{moments.length > 0 && <script is:inline>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>}
+{moments.length > 0 && <link rel="modulepreload" href="/kit/moments/moments.js">}
+{moments.length > 0 && <link rel="modulepreload" href="/kit/moments/lib.js">}
+{moments.map((m) => <link rel="modulepreload" href={`/kit/moments/${m}/moment.js`}>)}
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="alternate" type="application/json" href="/api/v1/assets.json" title="Cozu asset catalog (JSON)">
+{alternates.map((a) => <link rel="alternate" type={a.type} href={a.href} title={a.title}>)}
+{jsonld.map((j) => <script type="application/ld+json" is:inline set:html={JSON.stringify(j)} />)}
+<slot name="head" />
+</head>
+<body>
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Skip to content</a>
+    <a class="nav__logo" href="/"><span class="mark" data-mark="dots" aria-hidden="true"></span>Cozu</a>
+    <nav class="nav__links" aria-label="Main">
+      {nav.map((n) => <div class="nav__item"><a class="nav__link" href={n.href} aria-current={current === n.key ? 'page' : undefined}>{n.label}</a></div>)}
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--primary" href="/assets">Browse assets</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <slot />
+</main>
+
+<footer class="footer closing footer--statement" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--word">
+      <div class="section-head--split">
+        <div><h2 id="close-h">Find a model for your next build</h2><p class="t-lead">Free for commercial work. No account needed.</p></div>
+        <a class="btn btn--primary" href="/assets">Browse assets<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      </div>
+      <p class="close__word" aria-hidden="true">Cozu</p>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="/"><span class="mark" data-mark="dots" aria-hidden="true"></span>Cozu</a>
+          <p class="footer__lede">Free 3D models for games and apps.</p>
+        </div>
+        <div class="span-2 footer__col"><h3>Assets</h3><ul><li><a href="/assets">All assets</a></li>{categories.slice(0, 2).map((c) => <li><a href={`/categories/${c.id}`}>{c.name}</a></li>)}</ul></div>
+        <div class="span-2 footer__col"><h3>License</h3><ul><li><a href="/license">How to credit</a></li><li><a href="/license#terms">The terms</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>API</h3><ul><li><a href="/developers">Reference</a></li><li><a href="/api/v1/assets.json">Catalog JSON</a></li><li><a href="/llms.txt">llms.txt</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>MCP</h3><ul><li><a href="/developers#mcp">Connect an agent</a></li><li><a href={REPO}>Source code</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; {year} Cozu</span>
+        <div class="socials"></div>
+      </div>
+    </div>
+  </div>
+</footer>
+<script type="module" is:inline src="/kit/system.js"></script>
+<script type="module" is:inline src="/kit/motion/motion.js"></script>
+<script type="module" is:inline src="/kit/layout/layout.js"></script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+{
+  "slug": "ravenhall-tractor",
+  "title": "Ravenhall Tractor",
+  "summary": "A game-ready American long-hood semi tractor, 6x4 with a 72-inch sleeper, at real-world scale. Four LODs, a rigged version and collision hulls.",
+  "description": [
+    "A long-hood conventional semi tractor made for games and real-time apps. It comes as glTF 2.0 (GLB) at four levels of detail, as one skinned mesh for skeleton-based vehicle systems, with convex collision hulls, and as OBJ for everything else.",
+    "Every wheel, axle, steering knuckle and suspension link is its own node with its pivot on the real hinge axis, so steering, wheel spin and suspension travel work as they are. Wheelbase, track, wheel radius, mass and suggested spring and damper rates for Unity and Godot are in spec.json.",
+    "Real-world scale in metres, +Y up, front toward +Z. PBR materials with a clear-coat candy red paint and switchable lamps. Every GLB passes the Khronos glTF Validator with 0 errors."
+  ],
+  "type": "3d-model",
+  "category": "vehicles",
+  "tags": [
+    "semi truck",
+    "tractor unit",
+    "truck",
+    "vehicle",
+    "American truck",
+    "18-wheeler",
+    "game-ready",
+    "LOD",
+    "rigged",
+    "collision",
+    "PBR",
+    "glTF",
+    "GLB",
+    "OBJ"
+  ],
+  "license": "CC-BY-4.0",
+  "version": "1.0.0",
+  "published": "2026-11-22",
+  "updated": "2026-11-22",
+  "formats": [
+    "GLB",
+    "OBJ"
+  ],
+  "engines": [
+    "Unity",
+    "Unreal Engine",
+    "Godot",
+    "Blender",
+    "three.js",
+    "Babylon.js"
+  ],
+  "stats": {
+    "triangles": 230163,
+    "lods": [
+      230163,
+      60816,
+      19125,
+      8858
+    ],
+    "rigged": true,
+    "collision": true,
+    "textures": "up to 1024 px",
+    "materials": 26,
+    "units": "metres",
+    "up": "+Y",
+    "front": "+Z",
+    "size_m": [
+      2.96,
+      4.09,
+      9.31
+    ]
+  },
+  "previews": [
+    {
+      "file": "previews/hero.png",
+      "alt": "Red Ravenhall semi tractor from the front left on a desert highway",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "file": "previews/rear34.png",
+      "alt": "Ravenhall semi tractor from the rear right, showing the tandem axles and mudflaps",
+      "width": 1600,
+      "height": 1000
+    }
+  ],
+  "viewer": "ravenhall_tractor_web.glb",
+  "readme": "README.md",
+  "downloads": [
+    {
+      "file": "ravenhall-tractor-1.0.0.zip",
+      "label": "Full package",
+      "note": "Every LOD, the rigged and collision GLBs, OBJ with textures, spec.json and the README"
+    },
+    {
+      "file": "ravenhall_tractor_web.glb",
+      "label": "Web GLB",
+      "note": "LOD1 with meshopt compression and WebP textures, for three.js, Babylon.js and model-viewer"
+    },
+    {
+      "file": "ravenhall_tractor.glb",
+      "label": "LOD0 GLB",
+      "note": "Full detail for close-ups and cinematics"
+    },
+    {
+      "file": "ravenhall_tractor_rigged.glb",
+      "label": "Rigged GLB",
+      "note": "One skinned mesh with a bone per part, for Unreal Chaos vehicles and other skeleton-based systems"
+    }
+  ],
+  "storagePrefix": "assets/ravenhall-tractor/1.0.0/",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 108,
+      "sha256": "67f765f23e1dbdab869061027521867ed811bab5a66301babf59aaed306b2bca"
+    },
+    {
+      "path": "LICENSE.txt",
+      "bytes": 1046,
+      "sha256": "d1fce5381e948507b6d5e27cd94627b881ac05e9f1f6459cf0c6875284b72b7c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 36356,
+      "sha256": "2daa8bdcba1c0b311eb949aad60cf2cf56250ac7e32246d1bdfe3d413270464b"
+    },
+    {
+      "path": "obj/ravenhall_tractor.mtl",
+      "bytes": 8647,
+      "sha256": "f2a80a02f53eb153b51d18e022394b0c3892da6f6930285994b60a0c13463ebf"
+    },
+    {
+      "path": "obj/ravenhall_tractor.obj",
+      "bytes": 16496509,
+      "sha256": "cfebd247bd14cb0e2658a326051bddbf94f2693ee0364d6776f11d22a3ad15af"
+    },
+    {
+      "path": "obj/textures/ravenhall_brushed_aluminium_metallic.png",
+      "bytes": 7109,
+      "sha256": "01190a369775a69702f2d084a577fc4a213daee28d31ab3559b970b3183ba226"
+    },
+    {
+      "path": "obj/textures/ravenhall_brushed_aluminium_normal.png",
+      "bytes": 117046,
+      "sha256": "9f95ec0c452233c42071e9d0be3b4e0f1cf172c1c0597314c2c6a929f335512a"
+    },
+    {
+      "path": "obj/textures/ravenhall_brushed_aluminium_roughness.png",
+      "bytes": 52384,
+      "sha256": "784404d4dcb4795ee89c2225b4e5b19d1d0b3b2cbacc041e64af40e300789cab"
+    },
+    {
+      "path": "obj/textures/ravenhall_conspicuity_tape_basecolor.jpg",
+      "bytes": 1528,
+      "sha256": "dbc69c6ad54a592e9b6c72fd420279aa90ae36d6cc34e01e2535d883fdbca0af"
+    },
+    {
+      "path": "obj/textures/ravenhall_diamond_plate_normal.png",
+      "bytes": 32317,
+      "sha256": "d4078d515c64f3dff7500c7cbc5696c1c987dc82e3633cb8ede6534428a04d52"
+    },
+    {
+      "path": "obj/textures/ravenhall_door_decal_basecolor.png",
+      "bytes": 87467,
+      "sha256": "86bbe7ec55d939a6ce958ececc6a29c31709ba487eec985380d5003f28a98ef9"
+    },
+    {
+      "path": "obj/textures/ravenhall_door_decal_metallic.png",
+      "bytes": 17429,
+      "sha256": "1a3a008c0ed122fa5086fd28ff06213bb903fda8f31af4c90363d8580ed7abc4"
+    },
+    {
+      "path": "obj/textures/ravenhall_door_decal_roughness.png",
+      "bytes": 16960,
+      "sha256": "fea095a2ec4e32a509456142503852b9a2a6d28bda8ec3883c6d577c2891ab87"
+    },
+    {
+      "path": "obj/textures/ravenhall_emblem_basecolor.png",
+      "bytes": 433930,
+      "sha256": "bb65acd30e2964aff53803ff2e8f8ff046998e713e8a54d8964caa71dd3bb38b"
+    },
+    {
+      "path": "obj/textures/ravenhall_emblem_metallic.png",
+      "bytes": 40467,
+      "sha256": "27bce6e2dffb7a946c6bd873bafbe8b7d03422ba47e4a19000c6c1b277aef361"
+    },
+    {
+      "path": "obj/textures/ravenhall_emblem_roughness.png",
+      "bytes": 49267,
+      "sha256": "004c30cf7075e661417d76c8fc512700774468c64b66a9e9707382e386ab7110"
+    },
+    {
+      "path": "obj/textures/ravenhall_heat_shield_basecolor.png",
+      "bytes": 2245,
+      "sha256": "42fd765beec472b388fd323777530770baeb9ba7bd4f494955e57dc8c71c3fa4"
+    },
+    {
+      "path": "obj/textures/ravenhall_light_marker_amber_normal.png",
+      "bytes": 23952,
+      "sha256": "f96a17e4f7c2f6c35df6126f87171df4299d78f0d382c5afc74df47786bb0517"
+    },
+    {
+      "path": "obj/textures/ravenhall_mudflap_basecolor.jpg",
+      "bytes": 14953,
+      "sha256": "351eecb22c8f2ac6e358e7b7bba853cbd3dc9abb2bc22607a99b89767b4a8ba3"
+    },
+    {
+      "path": "obj/textures/ravenhall_plate_basecolor.jpg",
+      "bytes": 220706,
+      "sha256": "859a0cf0fae6848aaef292521dfb2efd859b7a255f55f6d7cf13a6fb8d82cf1c"
+    },
+    {
+      "path": "obj/textures/ravenhall_radiator_core_basecolor.jpg",
+      "bytes": 13522,
+      "sha256": "95214b63c40e4cef53009899c4d1c66c398cd29d40c76c759d4768240cc99885"
+    },
+    {
+      "path": "obj/textures/ravenhall_radiator_core_normal.png",
+      "bytes": 3651,
+      "sha256": "fbcce92a291a7b9cc0bdc9ee7caaafa701445fd3e3bdcf39b9baf6deaaa1be26"
+    },
+    {
+      "path": "obj/textures/ravenhall_tire_basecolor.jpg",
+      "bytes": 144258,
+      "sha256": "90e9af97442b4b6fd9545d728dd7d469bd31bfa687961bb87064973127e30a21"
+    },
+    {
+      "path": "obj/textures/ravenhall_tire_normal.png",
+      "bytes": 1341813,
+      "sha256": "2a10a6290237dc5d6af5afd6dc3f1cd9beec81098c66936eaf79f94d8eff80ef"
+    },
+    {
+      "path": "previews/hero.png",
+      "bytes": 2173481,
+      "sha256": "b34252c79cee477eb645a48f1ca9eb756f81731f8fe3d9f5c797745f53e272a7"
+    },
+    {
+      "path": "previews/rear34.png",
+      "bytes": 2228050,
+      "sha256": "4a750b5b6f20e420253d20e6c0496fc450647a955c4c7397e2d88357a35b8ff0"
+    },
+    {
+      "path": "ravenhall_tractor.glb",
+      "bytes": 11202092,
+      "sha256": "3a8e142552fd832e0783fd634081b7fda26813352e9a06b292e0810348c84e2f"
+    },
+    {
+      "path": "ravenhall_tractor_collision.glb",
+      "bytes": 21812,
+      "sha256": "904ffb9a7d261f630252e9c23c04ed37adf56707221db0cadcde1ee06e390ef3"
+    },
+    {
+      "path": "ravenhall_tractor_collision_wheels.glb",
+      "bytes": 27848,
+      "sha256": "6eb14a58b5e0f13b46cd684794882a22191c48fa49b36e6279397b068063d900"
+    },
+    {
+      "path": "ravenhall_tractor_lod1.glb",
+      "bytes": 4672504,
+      "sha256": "8bb9c9ce2d23694ce6a46d2574c397dd515b28e6b63ed4eb6fe14c90d2e10f05"
+    },
+    {
+      "path": "ravenhall_tractor_lod2.glb",
+      "bytes": 3274960,
+      "sha256": "7669e2b3ff78d28afb43217fd2153b1658e9df44ac8f36a5f615bb70a5bdf3a4"
+    },
+    {
+      "path": "ravenhall_tractor_lod3.glb",
+      "bytes": 601188,
+      "sha256": "a5f0271d15337c57fd943fbb05edd0d96b45fd8fcc23d2cd8c6da533b39b5b7d"
+    },
+    {
+      "path": "ravenhall_tractor_rigged.glb",
+      "bytes": 13218584,
+      "sha256": "176f4ea019dedd39256530950349c9841fd43ad569e1713af8a8279ec1610c97"
+    },
+    {
+      "path": "ravenhall_tractor_rigged_lod1.glb",
+      "bytes": 5155680,
+      "sha256": "fa57c7976de2422c59dba7e55af19fe25e49384889fb1faef8bdad97a75b573e"
+    },
+    {
+      "path": "ravenhall_tractor_rigged_lod2.glb",
+      "bytes": 3533396,
+      "sha256": "157cd8911053ff8bc8e7b7fe0724363851481c892a6457a73d13027cc6a05100"
+    },
+    {
+      "path": "ravenhall_tractor_rigged_lod3.glb",
+      "bytes": 717244,
+      "sha256": "2b08640282996cb2915617c76abaeb3cc3294ccd28a49e9c426fa7a0be6ba7be"
+    },
+    {
+      "path": "ravenhall_tractor_web.glb",
+      "bytes": 2353468,
+      "sha256": "b4f098fb9c251e3505f0b46b51706bc44ac6def6e4b6e0e363fc3cde3bb1a39a"
+    },
+    {
+      "path": "spec.json",
+      "bytes": 29489,
+      "sha256": "3e5f9fae731cb9e08f78e9e530e4b7020a9d332267c7fbd9d31e0b1f19696a93"
+    },
+    {
+      "path": "ravenhall-tractor-1.0.0.zip",
+      "bytes": 30711069,
+      "sha256": "1521463ae28b2b4a2306e5fc9f0551df386c5fbad8cf18da3ed5890b30d6f3a8"
+    }
+  ]
+}

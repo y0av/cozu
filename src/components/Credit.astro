@@ -1,0 +1,30 @@
+---
+// The credit line as text, HTML and Markdown, each with a copy button.
+import { attribution } from '../lib/site.mjs';
+interface Props { asset: any }
+const a = attribution(Astro.props.asset);
+// brackets in their own spans: the kit's placeholder guard reads "[...]" in one text node as a stand-in
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\[\]]/g, (c) => `<span>${c}</span>`);
+const forms = [
+  { id: 'credit-text', label: 'Text: credits screens, READMEs, video descriptions', body: a.text },
+  { id: 'credit-html', label: 'HTML: websites and web apps', body: a.html },
+  { id: 'credit-md', label: 'Markdown: docs and repositories', body: a.markdown },
+];
+---
+<div class="stack-5">
+  {forms.map((f) => (
+    <div class="copybox">
+      <div class="copybox__head"><span class="t-label">{f.label}</span><button class="copy-btn" type="button" data-copy={f.id}>Copy</button></div>
+      <pre class="code code--wrap" id={f.id} set:html={esc(f.body)} />
+    </div>
+  ))}
+</div>
+<script>
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    b.addEventListener('click', async () => {
+      const text = document.getElementById(b.dataset.copy!)!.textContent!;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; } catch { b.textContent = 'Select and copy'; }
+      setTimeout(() => { b.textContent = 'Copy'; }, 1800);
+    });
+  }
+</script>

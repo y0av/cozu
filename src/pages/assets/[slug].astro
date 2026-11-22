@@ -1,0 +1,219 @@
+---
+import { Image, Picture, getImage } from 'astro:assets';
+import { marked } from 'marked';
+import Base from '../../layouts/Base.astro';
+import Credit from '../../components/Credit.astro';
+import { SITE, NAME, LICENSES, fileUrl, fileOf, formatBytes, assetPath, attribution } from '../../lib/site.mjs';
+import { assets, categoryName } from '../../lib/assets.mjs';
+
+export function getStaticPaths() {
+  return assets.map((asset) => ({ params: { slug: asset.slug }, props: { asset } }));
+}
+const { asset } = Astro.props;
+const lic = LICENSES[asset.license];
+const credit = attribution(asset);
+const [main, ...more] = asset.previews;
+const mainUrl = fileUrl(asset, main.file);
+const og = await getImage({ src: mainUrl, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+const poster = await getImage({ src: mainUrl, width: 1280, height: Math.round(1280 * main.height / main.width), format: 'webp' });
+const downloads = asset.downloads.map((d) => ({ ...d, ...fileOf(asset, d.file), url: fileUrl(asset, d.file) }));
+const [primary] = downloads;
+const ext = (p) => p.split('.').pop().toUpperCase();
+
+// The package README, from Storage, as the documentation section: its title and images dropped, its
+// headings moved one level down under this page's h2.
+let readme = '';
+if (asset.readme) {
+  const res = await fetch(fileUrl(asset, asset.readme));
+  if (!res.ok) throw new Error(`README for ${asset.slug}: HTTP ${res.status}`);
+  const md = (await res.text()).replace(/^# .*\n/, '').replace(/!\[[^\]]*\]\([^)]*\)\n?/g, '').replace(/^(#{2,5}) /gm, '#$1 ');
+  readme = await marked.parse(md, { gfm: true });
+  readme = readme.split(/(<[^>]+>)/).map((part) => (part.startsWith('<') ? part : part.replace(/[\[\]]/g, (c) => `<span>${c}</span>`))).join('');
+}
+
+const s = asset.stats || {};
+const facts = [
+  s.triangles && ['Triangles', `${s.triangles.toLocaleString('en-US')}${s.lods ? ' (LOD0)' : ''}`],
+  s.lods && ['Levels of detail', `${s.lods.length}`],
+  ['Formats', asset.formats.join(', ')],
+  s.rigged !== undefined && ['Rigged', s.rigged ? 'Yes' : 'No'],
+  ['License', lic.short],
+].filter(Boolean);
+const specs = [
+  s.lods && ['Triangles per LOD', s.lods.map((n) => n.toLocaleString('en-US')).join(' / ')],
+  s.materials && ['Materials', `${s.materials}`],
+  s.textures && ['Textures', s.textures],
+  s.collision !== undefined && ['Collision meshes', s.collision ? 'Yes' : 'No'],
+  s.size_m && ['Size (width × height × length)', `${s.size_m.join(' × ')} m`],
+  s.units && ['Units and axes', `${s.units}, ${s.up} up, front ${s.front}`],
+  ['Works in', asset.engines.join(', ')],
+  ['Version', asset.version],
+  ['Updated', asset.updated],
+].filter(Boolean);
+
+const page = SITE + assetPath(asset.slug);
+const jsonld = [
+  {
+    '@context': 'https://schema.org', '@type': '3DModel', name: asset.title, description: asset.summary, url: page,
+    image: asset.previews.map((p) => fileUrl(asset, p.file)), thumbnailUrl: new URL(og.src, SITE).href,
+    encodingFormat: asset.formats.map((f) => ({ GLB: 'model/gltf-binary', GLTF: 'model/gltf+json', OBJ: 'model/obj', FBX: 'application/octet-stream' })[f] || f),
+    contentUrl: primary.url, contentSize: formatBytes(primary.bytes), license: lic.url, acquireLicensePage: `${SITE}/license`,
+    isAccessibleForFree: true, creditText: credit.text, copyrightNotice: NAME,
+    creator: { '@type': 'Organization', name: NAME, url: SITE }, datePublished: asset.published, dateModified: asset.updated,
+    version: asset.version, keywords: asset.tags.join(', '), inLanguage: 'en',
+  },
+  {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Assets', item: `${SITE}/assets` },
+      { '@type': 'ListItem', position: 2, name: categoryName(asset.category), item: `${SITE}/categories/${asset.category}` },
+      { '@type': 'ListItem', position: 3, name: asset.title, item: page },
+    ],
+  },
+];
+const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type === '3d-model' ? '3D model' : 'asset'} | Cozu`;
+---
+<Base title={title} description={asset.summary} image={new URL(og.src, SITE).href} imageAlt={main.alt} jsonld={jsonld} current="assets"
+  alternates={[
+    { type: 'application/json', href: `/api/v1/assets/${asset.slug}.json`, title: `${asset.title} (JSON)` },
+    { type: 'text/markdown', href: `/assets/${asset.slug}.md`, title: `${asset.title} (Markdown)` },
+  ]}>
+  <section class="section section--page" aria-labelledby="asset-h">
+    <div class="wrap grid">
+      <div class="span-7">
+        <div class="viewer" id="viewer" data-model={asset.viewer ? fileUrl(asset, asset.viewer) : undefined} data-poster={poster.src} data-alt={`3D view of ${asset.title}`}>
+          <Picture src={mainUrl} width={main.width} height={main.height} alt={main.alt} formats={['avif', 'webp']} fallbackFormat="jpg"
+            widths={[640, 960, 1280, 1600]} sizes="(min-width: 1280px) 740px, calc(100vw - 48px)" loading="eager" fetchpriority="high" />
+          {asset.viewer && <button class="btn btn--secondary viewer__btn" type="button" data-open-3d>View in 3D <span class="muted">{formatBytes(fileOf(asset, asset.viewer).bytes)}</span></button>}
+        </div>
+        {more.length > 0 && (
+          <div class="thumbs">
+            {asset.previews.map((p, i) => (
+              <button type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-shot={i} aria-label={p.alt}>
+                <Image src={fileUrl(asset, p.file)} width={p.width} height={p.height} alt="" widths={[200]} sizes="96px" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+        )}
+        {more.map((p) => (
+          <template data-shot-src>
+            <Picture src={fileUrl(asset, p.file)} width={p.width} height={p.height} alt={p.alt} formats={['avif', 'webp']} fallbackFormat="jpg"
+              widths={[640, 960, 1280, 1600]} sizes="(min-width: 1280px) 740px, calc(100vw - 48px)" />
+          </template>
+        ))}
+      </div>
+      <div class="span-5 asset-facts" data-enter>
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="/assets">Assets</a><span aria-hidden="true">/</span><a href={`/categories/${asset.category}`}>{categoryName(asset.category)}</a></nav>
+        <h1 id="asset-h">{asset.title}</h1>
+        <p class="t-lead muted">{asset.summary}</p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href={primary.url} download>Download {primary.label.toLowerCase()}</a>
+          <a class="link" href="#downloads">{formatBytes(primary.bytes)} · other files</a>
+        </div>
+        <dl class="specs">
+          {facts.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
+        </dl>
+        <p class="t-small muted">Free for commercial use. {lic.attributionRequired ? <>Credit required: <a class="link" href="#credit">copy the credit line</a>.</> : 'No credit required.'}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--page" id="downloads" aria-labelledby="dl-h">
+    <div class="wrap grid">
+      <div class="span-5 stack-4">
+        <h2 id="dl-h">Downloads</h2>
+        <p class="t-lead muted">Direct links, no account. Every file has a SHA-256 checksum in the list below and in the <a class="link" href={`/api/v1/assets/${asset.slug}.json`}>JSON record</a>.</p>
+      </div>
+      <div class="span-7">
+        <ul class="dl-list">
+          {downloads.map((d) => (
+            <li>
+              <span><b>{d.label}</b><span class="mono">{ext(d.file)} · {formatBytes(d.bytes)}</span></span>
+              <p>{d.note}</p>
+              <a class="btn btn--secondary" href={d.url} download>Download</a>
+            </li>
+          ))}
+        </ul>
+        <details class="more">
+          <summary>All {asset.files.length} files in version {asset.version}</summary>
+          <table class="files-table">
+            <thead><tr><th>File</th><th>Size</th><th>SHA-256</th></tr></thead>
+            <tbody>
+              {asset.files.map((f) => (
+                <tr><td><a href={fileUrl(asset, f.path)}>{f.path}</a></td><td>{formatBytes(f.bytes)}</td><td><code>{f.sha256.slice(0, 16)}…</code></td></tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--page" id="credit" aria-labelledby="credit-h">
+    <div class="wrap grid">
+      <div class="span-5 stack-4">
+        <h2 id="credit-h">Credit this asset</h2>
+        <p class="t-lead muted">{asset.title} is under <a class="link" href={lic.url}>{lic.short}</a>. Use it in anything, commercial or not, and put this line where your project lists credits. Keep the link. If you changed the model, add "modified".</p>
+        <a class="link" href="/license">More on crediting</a>
+      </div>
+      <div class="span-7"><Credit asset={asset} /></div>
+    </div>
+  </section>
+
+  <section class="section section--page" id="about" aria-labelledby="about-h">
+    <div class="wrap grid">
+      <div class="span-5 stack-4">
+        <h2 id="about-h">About the model</h2>
+        {asset.description.map((p) => <p class="muted">{p}</p>)}
+        <div class="tags">{asset.tags.map((t) => <a href={`/assets?q=${encodeURIComponent(t)}`}>{t}</a>)}</div>
+      </div>
+      <dl class="specs span-7">
+        {specs.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
+      </dl>
+    </div>
+  </section>
+
+  {readme && (
+    <section class="section section--page" id="docs" aria-labelledby="docs-h">
+      <div class="wrap grid">
+        <div class="span-5 stack-4">
+          <h2 id="docs-h">Documentation</h2>
+          <p class="muted">The README from the package. For agents: <a class="link" href={`/api/v1/assets/${asset.slug}.json`}>this asset as JSON</a> or <a class="link" href={`/assets/${asset.slug}.md`}>as Markdown</a>.</p>
+        </div>
+        <div class="span-7 prose" set:html={readme} />
+      </div>
+    </section>
+  )}
+</Base>
+
+<script>
+  // The 3D viewer (model-viewer, about 1 MB) is fetched only when asked for.
+  const viewer = document.getElementById('viewer');
+  let opened = false;
+  async function open3d() {
+    if (!viewer?.dataset.model || opened) return;
+    opened = true;
+    viewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    viewer.setAttribute('aria-busy', 'true');
+    await import('@google/model-viewer');
+    const mv = document.createElement('model-viewer');
+    for (const [k, v] of Object.entries({
+      src: viewer.dataset.model, poster: viewer.dataset.poster, alt: viewer.dataset.alt, 'camera-controls': '', 'touch-action': 'pan-y',
+      'shadow-intensity': '1', exposure: '1', 'environment-image': 'neutral', 'camera-orbit': '35deg 75deg auto', 'interaction-prompt': 'none',
+    })) mv.setAttribute(k, v);
+    viewer.replaceChildren(mv);
+    mv.addEventListener('load', () => viewer.removeAttribute('aria-busy'), { once: true });
+  }
+  for (const b of document.querySelectorAll('[data-open-3d]')) b.addEventListener('click', open3d);
+
+  // The render thumbnails swap the big picture (until the 3D viewer is open).
+  const shots = [viewer?.querySelector('picture')?.cloneNode(true), ...[...document.querySelectorAll<HTMLTemplateElement>('template[data-shot-src]')].map((t) => t.content.firstElementChild)];
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-shot]')) {
+    b.addEventListener('click', () => {
+      if (opened || !viewer) return;
+      const pic = shots[Number(b.dataset.shot)];
+      if (!pic) return;
+      viewer.querySelector('picture')?.replaceWith(pic.cloneNode(true));
+      for (const o of document.querySelectorAll('[data-shot]')) o.setAttribute('aria-pressed', String(o === b));
+    });
+  }
+</script>
