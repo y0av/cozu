@@ -45,8 +45,17 @@ const words = (a) => [a.title, a.summary, a.category, ...a.tags, ...a.formats].j
     for (const it of items) { const ok = terms.every((t) => it.dataset.words!.includes(t)); it.hidden = !ok; if (ok) shown++; }
     none.hidden = shown > 0;
   };
+  // a search counts once the typing pauses
+  let timer = 0, last = '';
+  const report = () => {
+    const term = q.value.trim().toLowerCase();
+    if (term.length < 2 || term === last) return;
+    last = term;
+    (window as any).cozuTrack?.('search', { search_term: term, results: items.filter((it) => !it.hidden).length });
+  };
   const start = new URLSearchParams(location.search).get('q');
   if (start) q.value = start;
-  q.addEventListener('input', run);
+  q.addEventListener('input', () => { run(); clearTimeout(timer); timer = window.setTimeout(report, 1200); });
   run();
+  if (start) report();
 </script>

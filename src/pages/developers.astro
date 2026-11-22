@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE, MCP_URL } from '../lib/site.mjs';
+import { SITE, MCP_URL, dlUrl } from '../lib/site.mjs';
 import { assets } from '../lib/assets.mjs';
 const a = assets[0];
 const desktop = JSON.stringify({ mcpServers: { cozu: { type: 'http', url: MCP_URL } } }, null, 2);
@@ -47,7 +47,8 @@ const rest = [
         </table>
         <pre>curl -s {SITE}/api/v1/assets/{a.slug}.json</pre>
         <h2 id="files">Downloading files</h2>
-        <p>Every file URL in a record is a direct download from Cozu's storage: no redirects through the site and no sign-in. Each file lists its size in bytes and its SHA-256, so a script can check what it got. A model's files never change under the same version number; a fix ships as a new version with its own URLs.</p>
+        <p>File URLs in a record point at <code>{SITE}/dl/</code>, which redirects to the file in Cozu's storage, so follow redirects (<code>curl -L</code>). No sign-in. Each file lists its size in bytes and its SHA-256, so a script can check what it got. A model's files never change under the same version number; a fix ships as a new version with its own URLs.</p>
+        <pre>curl -L -O {dlUrl(a, (a.downloads.find((d) => d.file.endsWith('.glb')) ?? a.downloads[0]).file)}</pre>
         <h2 id="limits">Fair use</h2>
         <p>There is no key and no hard limit. Cache the catalog rather than fetching it on every request, and download a package once rather than per build.</p>
       </div>

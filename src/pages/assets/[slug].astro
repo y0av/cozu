@@ -3,7 +3,7 @@ import { Image, Picture, getImage } from 'astro:assets';
 import { marked } from 'marked';
 import Base from '../../layouts/Base.astro';
 import Credit from '../../components/Credit.astro';
-import { SITE, NAME, LICENSES, fileUrl, fileOf, formatBytes, assetPath, attribution } from '../../lib/site.mjs';
+import { SITE, NAME, LICENSES, fileUrl, dlUrl, fileOf, formatBytes, assetPath, attribution } from '../../lib/site.mjs';
 import { assets, categoryName } from '../../lib/assets.mjs';
 
 export function getStaticPaths() {
@@ -16,7 +16,9 @@ const [main, ...more] = asset.previews;
 const mainUrl = fileUrl(asset, main.file);
 const og = await getImage({ src: mainUrl, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
 const poster = await getImage({ src: mainUrl, width: 1280, height: Math.round(1280 * main.height / main.width), format: 'webp' });
-const downloads = asset.downloads.map((d) => ({ ...d, ...fileOf(asset, d.file), url: fileUrl(asset, d.file) }));
+// downloads go through /dl/ (counted); via=site marks the ones started on this page
+const siteDl = (rel) => `${dlUrl(asset, rel)}?via=site`;
+const downloads = asset.downloads.map((d) => ({ ...d, ...fileOf(asset, d.file), url: siteDl(d.file) }));
 const [primary] = downloads;
 const ext = (p) => p.split('.').pop().toUpperCase();
 
@@ -102,7 +104,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
         ))}
       </div>
       {asset.viewer && (
-        <dialog class="viewer3d" id="viewer3d" aria-labelledby="viewer3d-h" data-model={fileUrl(asset, asset.viewer)} data-poster={poster.src} data-alt={`3D view of ${asset.title}`}>
+        <dialog class="viewer3d" id="viewer3d" aria-labelledby="viewer3d-h" data-asset={asset.slug} data-model={fileUrl(asset, asset.viewer)} data-poster={poster.src} data-alt={`3D view of ${asset.title}`}>
           <div class="viewer3d__bar">
             <p class="viewer3d__title" id="viewer3d-h">{asset.title}</p>
             <button class="btn btn--secondary viewer3d__close" type="button" data-close-3d>
@@ -118,7 +120,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
         <h1 id="asset-h">{asset.title}</h1>
         <p class="t-lead muted">{asset.summary}</p>
         <div class="btn-row">
-          <a class="btn btn--primary" href={primary.url} download>Download {primary.label.toLowerCase()}</a>
+          <a class="btn btn--primary" href={primary.url} rel="nofollow" data-dl download>Download {primary.label.toLowerCase()}</a>
           <a class="link" href="#downloads">{formatBytes(primary.bytes)} · all files</a>
         </div>
         <dl class="specs">
@@ -138,7 +140,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
             <li>
               <span><b>{d.label}</b><span class="mono">{ext(d.file)} · {formatBytes(d.bytes)}</span></span>
               <p>{d.note}</p>
-              <a class="btn btn--secondary" href={d.url} download>Download</a>
+              <a class="btn btn--secondary" href={d.url} rel="nofollow" data-dl download>Download</a>
             </li>
           ))}
         </ul>
@@ -148,7 +150,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
             <thead><tr><th>File</th><th>Size</th><th>SHA-256</th></tr></thead>
             <tbody>
               {asset.files.map((f) => (
-                <tr><td><a href={fileUrl(asset, f.path)}>{f.path}</a></td><td>{formatBytes(f.bytes)}</td><td><code>{f.sha256.slice(0, 16)}…</code></td></tr>
+                <tr><td><a href={siteDl(f.path)} rel="nofollow" data-dl>{f.path}</a></td><td>{formatBytes(f.bytes)}</td><td><code>{f.sha256.slice(0, 16)}…</code></td></tr>
               ))}
             </tbody>
           </table>
@@ -199,6 +201,7 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
   async function open3d() {
     if (!dlg || !stage || !dlg.dataset.model) return;
     dlg.showModal();
+    (window as any).cozuTrack?.('view_3d', { asset: dlg.dataset.asset });
     if (mounted) return;
     mounted = true;
     try {

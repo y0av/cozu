@@ -10,6 +10,13 @@
     ],
     "rewrites": [
       {
+        "source": "/dl/**",
+        "function": {
+          "functionId": "api",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/mcp",
         "function": {
           "functionId": "api",

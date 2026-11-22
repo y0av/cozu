@@ -5,6 +5,8 @@ export const NAME = 'Cozu';
 export const BUCKET = 'cozu-a.firebasestorage.app';
 export const REPO = 'https://github.com/y0av/cozu';
 export const MCP_URL = `${SITE}/mcp`;
+/** Google Analytics (GA4) web stream of the site; the Cloud Function reports to it as well (functions/track.js). */
+export const GA_ID = 'G-XHC8V9PXXD';
 
 export const LICENSES = {
   'CC-BY-4.0': {
@@ -23,6 +25,9 @@ export const assetUrl = (slug) => SITE + assetPath(slug);
 /** Public download URL of a file in an asset's Storage folder. */
 export const fileUrl = (entry, rel) =>
   `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(entry.storagePrefix + rel)}?alt=media`;
+
+/** Download URL of a file: through the site's /dl/ redirect, which counts the download (functions/index.js). */
+export const dlUrl = (entry, rel) => `${SITE}/dl/${entry.slug}/${entry.version}/${rel.split('/').map(encodeURIComponent).join('/')}`;
 
 export const fileOf = (entry, rel) => entry.files.find((f) => f.path === rel);
 
@@ -48,7 +53,9 @@ export function attribution(entry) {
 /** The public JSON form of a catalog entry (API, MCP, llms-full.txt). */
 export function toApi(entry) {
   const lic = LICENSES[entry.license];
+  // previews, the web viewer model and the README are for display: direct Storage URLs. Downloads go through /dl/.
   const file = (rel) => ({ path: rel, url: fileUrl(entry, rel), ...pick(fileOf(entry, rel), ['bytes', 'sha256']) });
+  const dl = (rel) => ({ path: rel, url: dlUrl(entry, rel), ...pick(fileOf(entry, rel), ['bytes', 'sha256']) });
   return {
     id: entry.slug,
     title: entry.title,
@@ -69,8 +76,8 @@ export function toApi(entry) {
     previews: entry.previews.map((p) => ({ ...file(p.file), alt: p.alt })),
     viewer: entry.viewer ? file(entry.viewer) : null,
     readme: entry.readme ? file(entry.readme) : null,
-    downloads: entry.downloads.map((d) => ({ label: d.label, description: d.note, ...file(d.file) })),
-    files: entry.files.map((f) => ({ path: f.path, url: fileUrl(entry, f.path), bytes: f.bytes, sha256: f.sha256 })),
+    downloads: entry.downloads.map((d) => ({ label: d.label, description: d.note, ...dl(d.file) })),
+    files: entry.files.map((f) => ({ path: f.path, url: dlUrl(entry, f.path), bytes: f.bytes, sha256: f.sha256 })),
   };
 }
 

@@ -14,7 +14,7 @@ const forms = [
 <div class="stack-5">
   {forms.map((f) => (
     <div class="copybox">
-      <div class="copybox__head"><span class="t-label">{f.label}</span><button class="copy-btn" type="button" data-copy={f.id}>Copy</button></div>
+      <div class="copybox__head"><span class="t-label">{f.label}</span><button class="copy-btn" type="button" data-copy={f.id} data-asset={Astro.props.asset.slug}>Copy</button></div>
       <pre class="code code--wrap" id={f.id} set:html={esc(f.body)} />
     </div>
   ))}
@@ -24,6 +24,7 @@ const forms = [
     b.addEventListener('click', async () => {
       const text = document.getElementById(b.dataset.copy!)!.textContent!;
       try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; } catch { b.textContent = 'Select and copy'; }
+      (window as any).cozuTrack?.('copy_credit', { asset: b.dataset.asset, credit_format: b.dataset.copy!.replace('credit-', '') });
       setTimeout(() => { b.textContent = 'Copy'; }, 1800);
     });
   }

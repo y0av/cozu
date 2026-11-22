@@ -1,0 +1,20 @@
+---
+// What the site measures, as Google Analytics' terms require a site to say.
+import Base from '../layouts/Base.astro';
+---
+<Base title="Privacy | Cozu" description="What cozu.xyz measures: Google Analytics on the pages, and counts of downloads, API and MCP calls. No accounts, no ads.">
+  <section class="section section--page" aria-labelledby="privacy-h">
+    <div class="wrap">
+      <div class="prose">
+        <h1 id="privacy-h">Privacy</h1>
+        <p>Cozu has no accounts and no ads. It measures how the site and its files are used, to know which models people want.</p>
+        <h2>On the pages</h2>
+        <p>The pages run Google Analytics, which records visits, the pages viewed, searches, 3D views, credit-line copies and downloads, with your approximate location and device type from Google. In the European Economic Area, the UK and Switzerland it sets no cookies and sends anonymous pings only. Google's own policy covers what it does with the data: <a href="https://policies.google.com/privacy">policies.google.com/privacy</a>.</p>
+        <h2>Downloads, the API and the MCP server</h2>
+        <p>Downloads, API searches and MCP calls are counted on Cozu's server. Each count keeps what was asked for, the client's User-Agent (to tell people, agents and crawlers apart) and the referring page. Your IP address is not stored or passed on: it is only used, hashed with a secret, to group requests from the same client.</p>
+        <h2>Logs</h2>
+        <p>The hosting provider, Google Firebase, keeps request logs, which include IP addresses, for up to 30 days.</p>
+      </div>
+    </div>
+  </section>
+</Base>

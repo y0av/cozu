@@ -5,7 +5,7 @@
 import '../styles/site.css';
 import geist from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 import geistMono from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
-import { SITE, NAME, REPO } from '../lib/site.mjs';
+import { SITE, NAME, REPO, GA_ID } from '../lib/site.mjs';
 import { categories } from '../lib/assets.mjs';
 
 interface Props {
@@ -24,6 +24,26 @@ const canonical = SITE + (path === '/' || path === '' ? '/' : path.replace(/\/$/
 const fonts = `@font-face{font-family:'Geist';font-style:normal;font-weight:100 900;font-display:swap;src:url(${geist}) format('woff2')}@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400;font-display:swap;src:url(${geistMono}) format('woff2')}`;
 const palette = `:root{--p-bg:#0a0d14;--p-surface:#131824;--p-ink:#e9edf3;--p-muted:#8891a1;--p-accent:#5ab9fc;--p-accent-ink:#0a0d14;--p-action:#5ab9fc;--p-action-ink:#0a0d14;--p-inv-bg:#e9edf3;--p-inv-surface:#d7dbe1;--p-inv-ink:#0a0d14;--p-inv-muted:#54575f;--p-inv-accent:#0a0d14;--p-inv-accent-ink:#e9edf3;--p-inv-action:#0a0d14;--p-inv-action-ink:#e9edf3;--font-display:"Geist",system-ui,sans-serif;--font-text:"Geist",system-ui,sans-serif;--font-mono:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;--display-weight:500;--display-tracking:-0.035em;--display-tracking-xl:-0.045em}`;
 const year = new Date().getFullYear();
+// Google Analytics, loaded after the page has finished so it never slows the first paint. Every hit says
+// who sent it (the traffic user property: human, agent or bot, from the browser's signals; set before the tag
+// starts so the automatic page view carries it); server-side events for callers that
+// never run this page use the same names (functions/track.js). Analytics cookies are off by default in the
+// EEA, the UK and Switzerland, where the tag then sends cookieless pings only. Ads storage is off everywhere.
+// Once the tag is up, download links get the visitor's Analytics ids so the counted download joins the visit.
+const EU = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH'];
+const analytics = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+(function(){var ID='${GA_ID}',ua=navigator.userAgent||'';
+var bot=/bot\\b|bot\\/|crawl|spider|slurp|facebookexternalhit|preview/i.test(ua);
+var auto=!bot&&(navigator.webdriver||/HeadlessChrome|PhantomJS|Puppeteer|Playwright|Selenium|Lighthouse/i.test(ua));
+var p={traffic:bot?'bot':auto?'agent':'human',client_type:bot?'crawler':auto?'headless':'browser'};
+window.cozuTrack=function(n,o){var e={},k;for(k in p)e[k]=p[k];for(k in o)e[k]=o[k];gtag('event',n,e)};
+var D='denied';
+gtag('consent','default',{ad_storage:D,ad_user_data:D,ad_personalization:D,analytics_storage:D,region:${JSON.stringify(EU)}});
+gtag('consent','default',{ad_storage:D,ad_user_data:D,ad_personalization:D,analytics_storage:'granted'});
+gtag('set',p);gtag('set','user_properties',p);gtag('js',new Date());gtag('config',ID);
+function ids(){gtag('get',ID,'client_id',function(c){gtag('get',ID,'session_id',function(s){document.querySelectorAll('a[data-dl]').forEach(function(a){var u=new URL(a.href);if(c)u.searchParams.set('cid',c);if(s)u.searchParams.set('sid',s);a.href=u.href})})})}
+function load(){var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+ID;s.onload=ids;document.head.appendChild(s)}
+if(document.readyState==='complete')setTimeout(load,0);else addEventListener('load',function(){setTimeout(load,0)},{once:true});})();`;
 ---
 <!doctype html>
 <html lang="en" data-type="software" data-radius="soft" data-ground="sky" data-buttons="solid" data-motion>
@@ -46,6 +66,7 @@ const year = new Date().getFullYear();
 <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'}>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0a0d14">
+<script is:inline set:html={analytics}></script>
 <meta name="site-kind" content="software">
 <meta name="page-type" content="software">
 <link rel="preload" href={geist} as="font" type="font/woff2" crossorigin>
@@ -79,7 +100,7 @@ const year = new Date().getFullYear();
       <div class="span-2 footer__col"><h3>Assets</h3><ul><li><a href="/">All assets</a></li>{categories.map((c) => <li><a href={`/categories/${c.id}`}>{c.name}</a></li>)}</ul></div>
       <div class="span-2 footer__col"><h3>License</h3><ul><li><a href="/license">How to credit</a></li><li><a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></li></ul></div>
       <div class="span-2 footer__col"><h3>Developers</h3><ul><li><a href="/developers">API</a></li><li><a href="/developers#mcp">MCP server</a></li><li><a href="/llms.txt">llms.txt</a></li></ul></div>
-      <div class="span-2 footer__col"><h3>Project</h3><ul><li><a href={REPO}>Source code</a></li><li><a href="/sitemap-index.xml">Sitemap</a></li></ul></div>
+      <div class="span-2 footer__col"><h3>Project</h3><ul><li><a href={REPO}>Source code</a></li><li><a href="/sitemap-index.xml">Sitemap</a></li><li><a href="/privacy">Privacy</a></li></ul></div>
     </div>
     <div class="footer__legal"><span>&copy; {year} Cozu</span></div>
   </div>

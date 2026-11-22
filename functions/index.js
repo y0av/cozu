@@ -1,10 +1,21 @@
-// Cozu's one Cloud Function: the MCP server (POST /mcp, Streamable HTTP, stateless, JSON responses) and
-// GET /api/v1/search. Both read the static catalog the site publishes, cached in memory for five minutes.
+// Cozu's one Cloud Function: the MCP server (POST /mcp, Streamable HTTP, stateless, JSON responses),
+// GET /api/v1/search, and the download redirect GET /dl/<asset>/<version>/<file> (counts the download, then
+// sends the caller to the file in Storage). All read the static catalog the site publishes, cached in memory
+// for five minutes. POST /_ingest/hosting takes the Hosting request log from Pub/Sub for analytics (track.js).
 // Deployed by .github/workflows/deploy.yml on every push to main that changes this folder.
+import { timingSafeEqual } from 'node:crypto';
 import { onRequest } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
+import { track, caller, hostingRequest } from './track.js';
+
+// GA_MP_SECRET: the Measurement Protocol key of the site's Analytics stream.
+// INGEST_TOKEN: shared with the Pub/Sub push subscription that delivers the Hosting request log.
+const GA_MP_SECRET = defineSecret('GA_MP_SECRET');
+const INGEST_TOKEN = defineSecret('INGEST_TOKEN');
+const BUCKET = 'cozu-a.firebasestorage.app';
 
 const SITE = 'https://cozu.xyz';
 const CATALOG_URL = process.env.CATALOG_URL || 'https://cozu-a.web.app/api/v1/assets.json';
@@ -13,7 +24,8 @@ let cache = { at: 0, data: null };
 
 async function catalog() {
   if (cache.data && Date.now() - cache.at < TTL) return cache.data;
-  const res = await fetch(CATALOG_URL, { headers: { accept: 'application/json' } });
+  // the name keeps this request out of the analytics (the Hosting log sink drops it)
+  const res = await fetch(CATALOG_URL, { headers: { accept: 'application/json', 'user-agent': 'cozu-internal/1' } });
   if (!res.ok) {
     if (cache.data) return cache.data;   // serve the last good copy if the site is briefly unreachable
     throw new Error(`catalog: HTTP ${res.status}`);
@@ -55,7 +67,9 @@ export function summary(a) {
   };
 }
 
-const asText = (obj) => ({ content: [{ type: 'text', text: typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2) }] });
+// download links handed out by the MCP server say so, to count downloads that came through it
+const viaMcp = (text) => text.replace(/(https:\/\/cozu\.xyz\/dl\/[^"?\s]+)/g, '$1?via=mcp');
+const asText = (obj) => ({ content: [{ type: 'text', text: viaMcp(typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2)) }] });
 
 function mcpServer() {
   const server = new McpServer(
@@ -112,16 +126,78 @@ function cors(res) {
   res.set('Access-Control-Expose-Headers', 'mcp-session-id, mcp-protocol-version');
 }
 
-export const api = onRequest({ region: 'us-central1', memory: '256MiB', maxInstances: 10, concurrency: 80, timeoutSeconds: 30, invoker: 'public' }, async (req, res) => {
+/** What an MCP request asks for, for the analytics: one entry per JSON-RPC call in it. */
+function mcpCalls(body) {
+  const list = Array.isArray(body) ? body : [body];
+  return list.filter((m) => m && typeof m.method === 'string' && !m.method.startsWith('notifications/')).map((m) => ({
+    mcp_method: m.method,
+    tool: m.method === 'tools/call' ? m.params?.name : undefined,
+    query: m.params?.arguments?.query ?? m.params?.arguments?.id,
+    mcp_client: m.method === 'initialize' && m.params?.clientInfo ? `${m.params.clientInfo.name || '?'} ${m.params.clientInfo.version || ''}`.trim() : undefined,
+  }));
+}
+
+const VIA = new Set(['site', 'mcp', 'api', 'llms', 'md']);
+const SAFE = /^[a-z0-9][a-z0-9-]*$/;
+
+/** GET /dl/<asset>/<version>/<path>: count the download, then redirect to the file in Storage. */
+async function download(req, res, path) {
+  const [, , slug, version, ...rest] = path.split('/');
+  const file = rest.map((p) => { try { return decodeURIComponent(p); } catch { return ''; } }).join('/');
+  if (!SAFE.test(slug || '') || !/^[0-9A-Za-z.-]+$/.test(version || '') || !file || file.split('/').some((p) => !p || p === '.' || p === '..')) {
+    res.status(404).json({ error: 'Not found. File URLs are in each asset record: https://cozu.xyz/developers' });
+    return;
+  }
+  let asset;
+  try { asset = (await catalog()).assets.find((a) => a.id === slug); } catch { /* catalog down: still redirect */ }
+  if (asset === undefined && cache.data) { res.status(404).json({ error: `No model with id "${slug}".` }); return; }
+  const target = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(`assets/${slug}/${version}/${file}`)}?alt=media`;
+  const who = caller(req);
+  const via = VIA.has(req.query.via) ? req.query.via : (who.referrer || '').startsWith('https://cozu.xyz') ? 'site' : 'direct';
+  const known = asset?.downloads.find((d) => d.path === file);
+  await track(GA_MP_SECRET.value(), { ...who, cid: req.query.cid, sid: req.query.sid }, 'download', {
+    asset: slug, version, file: file.split('/').pop(), file_format: (file.match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase(),
+    download: known ? known.label : 'file', via, bytes: asset?.files.find((f) => f.path === file)?.bytes,
+  });
+  res.set('Cache-Control', 'no-store');
+  res.redirect(302, target);
+}
+
+function sameToken(a, b) {
+  const x = Buffer.from(String(a || '')), y = Buffer.from(String(b || ''));
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+
+export const api = onRequest({ region: 'us-central1', memory: '256MiB', maxInstances: 10, concurrency: 80, timeoutSeconds: 30, invoker: 'public', secrets: [GA_MP_SECRET, INGEST_TOKEN] }, async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   const path = req.path.replace(/\/+$/, '') || '/';
+
+  if (path.startsWith('/dl/')) {
+    if (req.method !== 'GET' && req.method !== 'HEAD') { res.status(405).set('Allow', 'GET, HEAD').end(); return; }
+    await download(req, res, path);
+    return;
+  }
+
+  if (path === '/_ingest/hosting') {
+    // Pub/Sub push: always answer 204 once the token checks out, so a bad entry is not redelivered for days
+    if (req.method !== 'POST' || !sameToken(req.query.token, INGEST_TOKEN.value())) { res.status(403).end(); return; }
+    try {
+      const data = req.body?.message?.data;
+      if (data) await hostingRequest(GA_MP_SECRET.value(), JSON.parse(Buffer.from(data, 'base64').toString('utf8')));
+    } catch (e) {
+      console.error('ingest', e);
+    }
+    res.status(204).end();
+    return;
+  }
 
   if (path === '/api/v1/search') {
     if (req.method !== 'GET') { res.status(405).json({ error: 'Use GET' }); return; }
     try {
       const data = await catalog();
       const results = search(data, { query: req.query.q, category: req.query.category, format: req.query.format, limit: req.query.limit });
+      await track(GA_MP_SECRET.value(), caller(req), 'api_search', { query: req.query.q, category: req.query.category, file_format: req.query.format, results: results.length }, 'agent');
       res.set('Cache-Control', 'public, max-age=60, s-maxage=300');
       res.json({ count: results.length, results });
     } catch (e) {
@@ -137,6 +213,8 @@ export const api = onRequest({ region: 'us-central1', memory: '256MiB', maxInsta
       return;
     }
     if (req.method !== 'POST') { res.status(405).set('Allow', 'POST').end(); return; }
+    const who = caller(req);
+    const counted = Promise.all(mcpCalls(req.body).map((c) => track(GA_MP_SECRET.value(), who, 'mcp_call', c, 'agent')));
     const server = mcpServer();
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     res.on('close', () => { transport.close(); server.close(); });
@@ -147,6 +225,7 @@ export const api = onRequest({ region: 'us-central1', memory: '256MiB', maxInsta
       console.error('mcp', e);
       if (!res.headersSent) res.status(500).json({ jsonrpc: '2.0', error: { code: -32603, message: 'Internal error' }, id: null });
     }
+    await counted;
     return;
   }
 

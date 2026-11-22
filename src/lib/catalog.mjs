@@ -1,5 +1,5 @@
 // The machine-readable catalog: the JSON API, Markdown pages and llms.txt are all built from here.
-import { SITE, NAME, MCP_URL, LICENSES, toApi, attribution, formatBytes, fileUrl, fileOf, assetUrl } from './site.mjs';
+import { SITE, NAME, MCP_URL, LICENSES, toApi, attribution, formatBytes, fileUrl, dlUrl, fileOf, assetUrl } from './site.mjs';
 import { assets, categories, lastUpdated } from './assets.mjs';
 
 export const API_VERSION = '1';
@@ -28,7 +28,7 @@ export function assetMarkdown(a) {
   const s = a.stats || {};
   const rows = a.downloads.map((d) => {
     const f = fileOf(a, d.file);
-    return `| ${d.label} | ${formatBytes(f.bytes)} | ${fileUrl(a, d.file)} |`;
+    return `| ${d.label} | ${formatBytes(f.bytes)} | ${dlUrl(a, d.file)} |`;
   });
   return [
     `# ${a.title}`,
