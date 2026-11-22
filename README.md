@@ -60,6 +60,25 @@ public/kit/           the design kit (MIT, see public/kit/LICENSE.txt)
 
 Storage rules are deployed by hand: `npm run deploy`.
 
+## Analytics
+
+One Google Analytics property sees people, agents and bots, each hit labelled with a `traffic` user
+property (`human`, `agent` or `bot`) and a `client_type` (browser, ai_agent, ai_crawler, search_crawler,
+script, headless, link_preview, ...).
+
+- **Pages:** the Google Analytics tag in `src/layouts/Base.astro`, loaded after the page finishes. Events:
+  `search`, `view_3d`, `copy_credit`. Cookies are off by default in the EEA, the UK and Switzerland.
+- **Downloads, API, MCP:** the Cloud Function counts each call and sends it with the Measurement Protocol
+  (`functions/track.js`): `download` (every file URL goes through `/dl/`, which redirects to Storage),
+  `api_search`, `mcp_call`.
+- **Crawlers and agents reading pages or files:** Hosting request logging is on; the log sink
+  `hosting-to-analytics` sends entries to the Pub/Sub topic `hosting-requests`, whose push subscription
+  `hosting-requests-to-api` delivers them to the function (`/_ingest/hosting`), which sends
+  `server_request` for everything except people's page views (the tag counts those).
+
+Secrets in Secret Manager: `GA_MP_SECRET` (Measurement Protocol key) and `INGEST_TOKEN` (shared with the
+push subscription). Every event is also written to Cloud Logging as a `track <event>` line.
+
 ## Develop
 
 ```
