@@ -4,7 +4,9 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "predev": "node scripts/fetch-catalog.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/fetch-catalog.mjs",
     "build": "astro build && python3 scripts/check-brackets.py dist",
     "preview": "astro preview",
     "publish-asset": "node scripts/publish-asset.mjs",

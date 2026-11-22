@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# the catalog is fetched from Firebase Storage at build time (scripts/fetch-catalog.mjs)
+src/content/assets/
 .astro/
 .firebase/
 *.log
