@@ -1,6 +1,6 @@
 ---
 // Home. Plan (software): hero triptych · app-frame (the package's files beside its JSON record) ·
-// split (the licence, credit line marked) · agents on the inverse ground (moment iris-opens) · FAQ ·
+// split (the licence, credit line marked) · agents on the inverse ground · FAQ ·
 // footer closing (close-word, footer-statement). One effect: grain-gradient on one collage piece.
 import { Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
@@ -99,7 +99,7 @@ const codeHtml = json.map(([ind, key, v, flag]) => {
   return `<span class="ui-code__ln${cls}" data-n="${num}"${note}>${body}</span>`;
 }).join('\n');
 ---
-<Base title="Cozu: free 3D models for games and apps" description={description} image={new URL(og.src, SITE).href} imageAlt={front.alt} jsonld={jsonld} fragments={['window', 'code', 'doc', 'terminal-run']} moments={['iris-opens']}>
+<Base title="Cozu: free 3D models for games and apps" description={description} image={new URL(og.src, SITE).href} imageAlt={front.alt} jsonld={jsonld} fragments={['window', 'code', 'doc', 'terminal-run']}>
 
   <section class="hero hero--triptych" data-enter aria-labelledby="hero-h">
     <div class="wrap"><div class="hero-text grid hero__grid">
@@ -126,7 +126,7 @@ const codeHtml = json.map(([ind, key, v, flag]) => {
             <small>Downloads</small>
             {a.downloads.map((d) => <span class="pc-row"><b>{d.label}</b><i>{dl(d.file)}</i></span>)}
           </div>
-          <div class="ly-piece" style="left: 60%; top: 58%; width: 36%; height: 38%"><Image src={src(front)} width={front.width} height={front.height} widths={[360, 720]} sizes="(min-width: 1024px) 226px, 40vw" alt="" style="object-position: 38% 52%; transform: scale(1.9); transform-origin: 38% 52%" /></div>
+          <div class="ly-piece" style="left: 60%; top: 58%; width: 36%; height: 38%"><Image src={src(front)} width={front.width} height={front.height} widths={[360, 720]} sizes="(min-width: 1024px) 226px, 40vw" alt="" style="object-position: 30% 60%" /></div>
         </div>
         <div class="ly-collage__set" aria-hidden="true">
           <div class="ly-piece pc-term" style="left: 4%; top: 6%; width: 70%">
@@ -241,7 +241,7 @@ const codeHtml = json.map(([ind, key, v, flag]) => {
     </div>
   </section>
 
-  <section class="section ground-inverse" id="agents" aria-labelledby="agents-h" data-moment="iris-opens" data-moment-opts='{"from": "base"}'>
+  <section class="section ground-inverse" id="agents" aria-labelledby="agents-h">
     <div class="wrap">
       <div class="section-head section-head--row">
         <div><h2 id="agents-h">Agents can find, fetch and credit models</h2><p class="t-lead">One MCP server and a JSON API, with no key and no account.</p></div>
@@ -289,11 +289,11 @@ const codeHtml = json.map(([ind, key, v, flag]) => {
         <div class="engines">
           <p class="t-label">The models open in</p>
           <div class="engines__row ic-dark">
-            <img class="ic ic-32" src="/icons/godot.svg" alt="Godot" width="34" height="32">
-            <img class="ic ic-32" src="/icons/blender.svg" alt="Blender" width="39" height="32">
-            <img class="ic ic-32 ic-ink" src="/icons/unity.svg" alt="Unity" width="31" height="32">
-            <img class="ic ic-32 ic-ink" src="/icons/unrealengine.svg" alt="Unreal Engine" width="32" height="32">
-            <img class="ic ic-32 ic-ink" src="/icons/threejs.svg" alt="three.js" width="32" height="32">
+            <img class="ic ic-32" loading="lazy" src="/icons/godot.svg" alt="Godot" width="34" height="32">
+            <img class="ic ic-32" loading="lazy" src="/icons/blender.svg" alt="Blender" width="39" height="32">
+            <img class="ic ic-32 ic-ink" loading="lazy" src="/icons/unity.svg" alt="Unity" width="31" height="32">
+            <img class="ic ic-32 ic-ink" loading="lazy" src="/icons/unrealengine.svg" alt="Unreal Engine" width="32" height="32">
+            <img class="ic ic-32 ic-ink" loading="lazy" src="/icons/threejs.svg" alt="three.js" width="32" height="32">
           </div>
         </div>
       </div>
