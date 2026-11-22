@@ -1,8 +1,9 @@
-# Builds the site and deploys it to Firebase Hosting on every push to main.
+# Deploys on every push to main: the site to Firebase Hosting and the `api` Cloud Function (MCP server and
+# search), as two parallel jobs. firebase-tools skips the function when its source has not changed.
 # Auth is keyless: GitHub's OIDC token is exchanged for the github-deploy service account through
 # Workload Identity Federation, which only trusts this repository (y0av/cozu).
-# The Cloud Function and Storage rules are deployed by hand with `npm run deploy`.
-name: Deploy site
+# Storage rules are deployed by hand with `npm run deploy`.
+name: Deploy
 
 on:
   push:
@@ -10,15 +11,19 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-hosting
+  group: deploy
   cancel-in-progress: false
 
 permissions:
   contents: read
   id-token: write
 
+env:
+  WIF_PROVIDER: projects/862944936571/locations/global/workloadIdentityPools/github/providers/github-oidc
+  SERVICE_ACCOUNT: github-deploy@cozu-a.iam.gserviceaccount.com
+
 jobs:
-  deploy:
+  hosting:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -42,8 +47,32 @@ jobs:
 
       - uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/862944936571/locations/global/workloadIdentityPools/github/providers/github-oidc
-          service_account: github-deploy@cozu-a.iam.gserviceaccount.com
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
 
       - name: Deploy to Firebase Hosting
         run: npx -y firebase-tools@15.29.0 deploy --only hosting --project cozu-a --non-interactive --message "deploy ${GITHUB_SHA::7}"
+
+  functions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      # firebase-tools loads the function code to read its settings, so its dependencies must be installed
+      - run: npm ci
+        working-directory: functions
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Deploy the Cloud Function
+        run: npx -y firebase-tools@15.29.0 deploy --only functions --project cozu-a --non-interactive

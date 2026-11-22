@@ -40,7 +40,7 @@ src/lib/              site constants, licences, the catalog and its Markdown for
 src/pages/            pages and the generated API endpoints
 functions/            the MCP server and search
 scripts/              publish-asset.mjs (upload a package to Storage), check-brackets.py
-.github/workflows/     deploy.yml: build and deploy to Hosting on every push to main
+.github/workflows/     deploy.yml: deploy Hosting and the Cloud Function on every push to main
 public/kit/           the design kit (MIT, see public/kit/LICENSE.txt)
 ```
 
@@ -54,11 +54,11 @@ public/kit/           the design kit (MIT, see public/kit/LICENSE.txt)
    ```
    This needs `gcloud` signed in to the project. It uploads to `assets/<id>/<version>/` and writes the
    file list, sizes and checksums into the JSON.
-3. Commit and push to `main`. GitHub Actions builds the site and deploys it to Firebase Hosting
-   (`.github/workflows/deploy.yml`); the sitemap, JSON API, Markdown pages and llms.txt are regenerated
-   on every build.
+3. Commit and push to `main`. GitHub Actions builds the site and deploys it to Firebase Hosting, and
+   deploys the Cloud Function when its code changed (`.github/workflows/deploy.yml`). The sitemap, JSON
+   API, Markdown pages and llms.txt are regenerated on every build.
 
-The Cloud Function and Storage rules are deployed by hand: `npm run deploy`.
+Storage rules are deployed by hand: `npm run deploy`.
 
 ## Develop
 
