@@ -1,5 +1,6 @@
 // Cozu's one Cloud Function: the MCP server (POST /mcp, Streamable HTTP, stateless, JSON responses) and
 // GET /api/v1/search. Both read the static catalog the site publishes, cached in memory for five minutes.
+// Deployed by .github/workflows/deploy.yml on every push to main that changes this folder.
 import { onRequest } from 'firebase-functions/v2/https';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
