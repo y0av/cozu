@@ -32,10 +32,24 @@ details.more > summary { cursor: pointer; font-weight: 500; padding: var(--s-3) 
 
 /* the asset page: the stage (a render, swapped for the 3D viewer on a click) */
 .viewer { position: relative; overflow: clip; border-radius: var(--r-lg); background: var(--surface); aspect-ratio: 16 / 10; }
-.viewer > :is(img, picture, model-viewer) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.viewer > :is(img, picture) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .viewer picture img { width: 100%; height: 100%; object-fit: cover; }
-.viewer model-viewer { --poster-color: transparent; background: radial-gradient(120% 90% at 50% 30%, #1b2436, #0a0d14); }
 .viewer > .viewer__btn { position: absolute; left: var(--s-4); bottom: var(--s-4); z-index: 2; }
+/* the 3D view: a large modal over the page, full screen on phones */
+.viewer3d { margin: auto; padding: 0; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--bg); color: var(--ink);
+  width: min(1280px, calc(100vw - 48px)); height: min(860px, calc(100svh - 48px)); max-width: none; max-height: none; overflow: hidden; }
+.viewer3d[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.viewer3d::backdrop { background: rgb(4 6 10 / .82); backdrop-filter: blur(6px); }
+.viewer3d__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5); border-bottom: 1px solid var(--line); }
+.viewer3d__title { font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.viewer3d__close { gap: var(--s-2); flex: none; }
+.viewer3d__stage { position: relative; min-height: 0; display: grid; place-items: center; color: var(--muted); background: radial-gradient(120% 90% at 50% 30%, #1b2436, #0a0d14); }
+.viewer3d__stage model-viewer { position: absolute; inset: 0; width: 100%; height: 100%; --poster-color: transparent; }
+html:has(.viewer3d[open]) { overflow: hidden; }
+@media (max-width: 639px) {
+  .viewer3d { width: 100vw; height: 100svh; border: 0; border-radius: 0; }
+  .viewer3d__bar { padding-top: max(var(--s-3), env(safe-area-inset-top)); }
+}
 .thumbs { display: flex; gap: var(--s-3); margin-top: var(--s-3); }
 .thumbs button { width: 96px; aspect-ratio: 16 / 10; padding: 0; border: 2px solid transparent; border-radius: var(--r-sm, 8px); overflow: hidden; background: var(--surface); cursor: pointer; }
 .thumbs button[aria-pressed="true"] { border-color: var(--accent); }
