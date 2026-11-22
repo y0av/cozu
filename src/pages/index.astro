@@ -22,10 +22,7 @@ const words = (a) => [a.title, a.summary, a.category, ...a.tags, ...a.formats].j
   <section class="section section--page" aria-labelledby="list-h">
     <div class="wrap stack-6">
       <div class="list-head">
-        <div class="page-head">
-          <h1 id="list-h">Free 3D models</h1>
-          <p class="muted">GLB and OBJ. Free for commercial use, credited with a link.</p>
-        </div>
+        <h1 id="list-h">Free 3D models</h1>
         <div class="list-tools">
           <label class="search"><span class="sr-only">Search models</span><input type="search" id="q" placeholder="Search models" autocomplete="off"></label>
           {categories.length > 1 && <nav class="cats" aria-label="Categories"><a href="/" aria-current="page">All</a>{categories.map((c) => <a href={`/categories/${c.id}`}>{c.name}</a>)}</nav>}

@@ -84,7 +84,6 @@ main > .section.section--page > .wrap { height: auto; }
 
 /* the home list: title and tools on one row */
 .list-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--s-5); }
-.list-head .page-head { gap: var(--s-2); }
 .list-head h1 { font-size: var(--t-h2); }
 
 /* the footer: a plain directory under a hairline */
