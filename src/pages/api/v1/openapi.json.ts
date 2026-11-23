@@ -13,7 +13,7 @@ const spec = {
   servers: [{ url: SITE }],
   paths: {
     '/api/v1/assets.json': { get: { operationId: 'listAssets', summary: 'The whole catalog', responses: { 200: { description: 'Every model', content: { 'application/json': { schema: ref('Catalog') } } } } } },
-    '/api/v1/assets/{id}.json': { get: { operationId: 'getAsset', summary: 'One model', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, example: 'ravenhall-tractor' }], responses: { 200: { description: 'The model', content: { 'application/json': { schema: ref('Asset') } } }, 404: { description: 'No such model' } } } },
+    '/api/v1/assets/{id}.json': { get: { operationId: 'getAsset', summary: 'One model', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, example: 'semi-truck' }], responses: { 200: { description: 'The model', content: { 'application/json': { schema: ref('Asset') } } }, 404: { description: 'No such model' } } } },
     '/api/v1/search': { get: { operationId: 'searchAssets', summary: 'Search models', parameters: [
       { name: 'q', in: 'query', schema: { type: 'string' }, description: 'Words to match in the title, summary, tags and category' },
       { name: 'category', in: 'query', schema: { type: 'string' } },

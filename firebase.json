@@ -53,6 +53,46 @@
         "source": "/api/v1",
         "destination": "/developers",
         "type": 302
+      },
+      {
+        "source": "/assets/solvane-hatchback",
+        "destination": "/assets/hatchback",
+        "type": 301
+      },
+      {
+        "source": "/assets/solvane-hatchback.md",
+        "destination": "/assets/hatchback.md",
+        "type": 301
+      },
+      {
+        "source": "/api/v1/assets/solvane-hatchback.json",
+        "destination": "/api/v1/assets/hatchback.json",
+        "type": 301
+      },
+      {
+        "source": "/dl/solvane-hatchback/:rest*",
+        "destination": "/assets/hatchback",
+        "type": 301
+      },
+      {
+        "source": "/assets/ravenhall-tractor",
+        "destination": "/assets/semi-truck",
+        "type": 301
+      },
+      {
+        "source": "/assets/ravenhall-tractor.md",
+        "destination": "/assets/semi-truck.md",
+        "type": 301
+      },
+      {
+        "source": "/api/v1/assets/ravenhall-tractor.json",
+        "destination": "/api/v1/assets/semi-truck.json",
+        "type": 301
+      },
+      {
+        "source": "/dl/ravenhall-tractor/:rest*",
+        "destination": "/assets/semi-truck",
+        "type": 301
       }
     ],
     "headers": [
