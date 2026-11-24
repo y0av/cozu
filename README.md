@@ -44,7 +44,8 @@ src/content/assets/   generated: the catalog from Storage, one JSON file per mod
 src/lib/              site constants, licences, the catalog and its Markdown form
 src/pages/            pages and the generated API endpoints
 functions/            the MCP server and search
-scripts/              publish-asset.mjs (publish a model), fetch-catalog.mjs (catalog for the build), check-brackets.py
+scripts/              publish-asset.mjs (publish a model), fetch-catalog.mjs (catalog for the build), check-brackets.py,
+                      indexnow.mjs (tell search engines which pages a deploy changed)
 .github/workflows/     deploy.yml: deploy Hosting and the Cloud Function on every push to main
 public/kit/           the design kit (MIT, see public/kit/LICENSE.txt)
 ```
@@ -65,6 +66,9 @@ the deploy workflow. That needs `gcloud` signed in with write access to the buck
 GitHub Actions (`.github/workflows/deploy.yml`) builds and deploys the site on every push to `main` and on
 demand, and deploys the Cloud Function when its code changed. The sitemap, JSON API, Markdown pages and
 llms.txt are regenerated on every build. The build stops if the catalog cannot be read or is empty.
+After each Hosting deploy, `scripts/indexnow.mjs` compares the new sitemap with the one that was live and
+sends every new, updated or removed page to IndexNow, which passes it to Bing and the engines it shares
+with. The key file is `public/70c87900ebb7907d0d8370d3d2d3e29e.txt`.
 
 To take a model down, delete `catalog/<id>.json` and run the workflow (`gh workflow run deploy.yml`).
 Storage rules are deployed by hand: `npm run deploy`.

@@ -2,6 +2,7 @@
 # search), as two parallel jobs. firebase-tools skips the function when its source has not changed.
 # Auth is keyless: GitHub's OIDC token is exchanged for the github-deploy service account through
 # Workload Identity Federation, which only trusts this repository (y0av/cozu).
+# After the Hosting deploy, pages whose sitemap date changed are sent to IndexNow (scripts/indexnow.mjs).
 # Storage rules are deployed by hand with `npm run deploy`.
 name: Deploy
 
@@ -50,8 +51,15 @@ jobs:
           workload_identity_provider: ${{ env.WIF_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
+      # the live sitemap before this deploy, to tell IndexNow afterwards which pages changed
+      - name: Snapshot the live sitemap
+        run: node scripts/indexnow.mjs snapshot "$RUNNER_TEMP/live-sitemap.json"
+
       - name: Deploy to Firebase Hosting
         run: npx -y firebase-tools@15.29.0 deploy --only hosting --project cozu-a --non-interactive --message "deploy ${GITHUB_SHA::7}"
+
+      - name: Notify IndexNow
+        run: node scripts/indexnow.mjs notify "$RUNNER_TEMP/live-sitemap.json"
 
   functions:
     runs-on: ubuntu-latest
