@@ -9,7 +9,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
-import { track, caller, hostingRequest } from './track.js';
+import { track, caller, hostingRequest, CID } from './track.js';
 
 // GA_MP_SECRET: the Measurement Protocol key of the site's Analytics stream.
 // INGEST_TOKEN: shared with the Pub/Sub push subscription that delivers the Hosting request log.
@@ -156,7 +156,9 @@ async function download(req, res, path) {
   const who = caller(req);
   const via = VIA.has(req.query.via) ? req.query.via : (who.referrer || '').startsWith('https://cozu.xyz') ? 'site' : 'direct';
   const known = asset?.downloads.find((d) => d.path === file);
-  await track(GA_MP_SECRET.value(), { ...who, cid: req.query.cid, sid: req.query.sid }, 'download', {
+  // js=1 or the Analytics ids: the link was clicked on a cozu.xyz page that ran its script (Base.astro)
+  const page = req.query.js === '1' || CID.test(req.query.cid || '');
+  await track(GA_MP_SECRET.value(), { ...who, page, cid: req.query.cid, sid: req.query.sid }, 'download', {
     asset: slug, version, file: file.split('/').pop(), file_format: (file.match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase(),
     download: known ? known.label : 'file', via, bytes: asset?.files.find((f) => f.path === file)?.bytes,
   });

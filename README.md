@@ -44,7 +44,7 @@ src/content/assets/   generated: the catalog from Storage, one JSON file per mod
 src/lib/              site constants, licences, the catalog and its Markdown form
 src/pages/            pages and the generated API endpoints
 functions/            the MCP server and search
-scripts/              publish-asset.mjs (publish a model), fetch-catalog.mjs (catalog for the build), check-brackets.py,
+scripts/              publish-asset.mjs (publish a model), fetch-catalog.mjs (catalog for the build), who-is-calling.mjs, check-brackets.py,
                       indexnow.mjs (tell search engines which pages a deploy changed)
 .github/workflows/     deploy.yml: deploy Hosting and the Cloud Function on every push to main
 public/kit/           the design kit (MIT, see public/kit/LICENSE.txt)
@@ -90,6 +90,16 @@ script, headless, link_preview, ...).
   `hosting-to-analytics` sends entries to the Pub/Sub topic `hosting-requests`, whose push subscription
   `hosting-requests-to-api` delivers them to the function (`/_ingest/hosting`), which sends
   `server_request` for everything except people's page views (the tag counts those).
+
+A browser User-Agent alone does not count as a person, because scrapers send one. A download is `human` only
+when its link came from a cozu.xyz page that ran the site's script (the page adds `js=1`, and the Analytics ids
+once the tag loads); other browser-like callers are `bot` with `client_type` `unverified_browser`. Cozu's own
+tools name themselves `cozu-<tool>` in the User-Agent (`cozu-internal`, `cozu-livecheck`): their events go to
+Cloud Logging marked `internal` and never to Analytics.
+
+To see who the callers are, `node scripts/who-is-calling.mjs [days] [--ips]` groups the request logs by network
+(AS number and owner, looked up through Team Cymru's DNS service) with each network's User-Agents. It needs
+`gcloud` signed in with log read access.
 
 Secrets in Secret Manager: `GA_MP_SECRET` (Measurement Protocol key) and `INGEST_TOKEN` (shared with the
 push subscription). Every event is also written to Cloud Logging as a `track <event>` line.

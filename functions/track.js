@@ -64,7 +64,9 @@ function pseudoId(salt, ip, ua) {
   return `${h.readUInt32BE(0)}.${h.readUInt32BE(4)}`;
 }
 const session30 = () => Math.floor(Date.now() / 1_800_000) * 1800;   // a 30-minute bucket stands in for a session
-const CID = /^\d{1,12}\.\d{1,12}$/;
+export const CID = /^\d{1,12}\.\d{1,12}$/;
+// Cozu's own tools name themselves cozu-<tool> in the User-Agent (cozu-internal, cozu-livecheck, ...)
+const INTERNAL = /^cozu-/i;
 const SID = /^\d{1,12}$/;
 
 function params(obj) {
@@ -84,9 +86,13 @@ function params(obj) {
 export async function track(secret, who, name, extra = {}, force) {
   const c = classify(who.ua);
   if (force && c.traffic === 'human') c.traffic = force;
+  // A browser string proves nothing: scrapers send one. A caller counts as a person only when it came from
+  // a page that ran the site's script (who.page: download links carry js=1 or the Analytics ids).
+  else if (c.traffic === 'human' && !who.page) Object.assign(c, { traffic: 'bot', client_type: 'unverified_browser' });
   const ev = params({ traffic: c.traffic, client_type: c.client_type, agent: c.agent, page_location: who.url, page_referrer: who.referrer, ...extra });
-  console.log(JSON.stringify({ severity: 'INFO', message: `track ${name}`, event: name, ...ev, ua: (who.ua || '').slice(0, 300) }));
-  if (!secret || secret === 'unset') return;
+  const internal = INTERNAL.test(who.ua || '');
+  console.log(JSON.stringify({ severity: 'INFO', message: `track ${name}`, event: name, ...ev, ...(internal && { internal: true }), ua: (who.ua || '').slice(0, 300) }));
+  if (!secret || secret === 'unset' || internal) return;   // Cozu's own checks stay in the log, out of Analytics
   const body = {
     client_id: CID.test(who.cid || '') ? who.cid : pseudoId(secret, who.ip || '', who.ua || ''),
     user_properties: { traffic: { value: c.traffic }, client_type: { value: c.client_type } },

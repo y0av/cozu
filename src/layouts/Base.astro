@@ -30,6 +30,8 @@ const year = new Date().getFullYear();
 // never run this page use the same names (functions/track.js). Analytics cookies are off by default in the
 // EEA, the UK and Switzerland, where the tag then sends cookieless pings only. Ads storage is off everywhere.
 // Once the tag is up, download links get the visitor's Analytics ids so the counted download joins the visit.
+// Before that, they get js=1 even when the tag is blocked: the server counts a download as a person's only when
+// the link came from a page that ran this script, since scrapers send browser User-Agents too.
 const EU = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH'];
 const analytics = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 (function(){var ID='${GA_ID}',ua=navigator.userAgent||'';
@@ -42,6 +44,8 @@ gtag('consent','default',{ad_storage:D,ad_user_data:D,ad_personalization:D,analy
 gtag('consent','default',{ad_storage:D,ad_user_data:D,ad_personalization:D,analytics_storage:'granted'});
 gtag('set',p);gtag('set','user_properties',p);gtag('js',new Date());gtag('config',ID);
 function ids(){gtag('get',ID,'client_id',function(c){gtag('get',ID,'session_id',function(s){document.querySelectorAll('a[data-dl]').forEach(function(a){var u=new URL(a.href);if(c)u.searchParams.set('cid',c);if(s)u.searchParams.set('sid',s);a.href=u.href})})})}
+function mark(){document.querySelectorAll('a[data-dl]').forEach(function(a){var u=new URL(a.href);u.searchParams.set('js','1');a.href=u.href})}
+if(document.readyState==='loading')addEventListener('DOMContentLoaded',mark,{once:true});else mark();
 function load(){var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+ID;s.onload=ids;document.head.appendChild(s)}
 if(document.readyState==='complete')setTimeout(load,0);else addEventListener('load',function(){setTimeout(load,0)},{once:true});})();`;
 ---
