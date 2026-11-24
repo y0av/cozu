@@ -11,6 +11,7 @@ export const GET = () => text([
   '## Agents and API',
   '',
   `- [MCP server](${MCP_URL}): Streamable HTTP, tools search_assets, get_asset, get_attribution, list_categories`,
+  '- [Agent skill](https://github.com/y0av/cozu/tree/main/skills/cozu): install with `npx skills add y0av/cozu`',
   `- [Catalog JSON](${SITE}/api/v1/assets.json): every model with file URLs, sizes, SHA-256 and credit line`,
   `- [OpenAPI](${SITE}/api/v1/openapi.json)`,
   `- [API docs](${SITE}/developers)`,

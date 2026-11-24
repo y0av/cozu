@@ -14,6 +14,10 @@ catalog entries live in Firebase Storage, and publishing a model changes nothing
   claude mcp add --transport http cozu https://cozu.xyz/mcp
   ```
   Tools: `search_assets`, `get_asset`, `get_attribution`, `list_categories`.
+- Agent skill (`skills/cozu/SKILL.md`): when to use Cozu, which file to pick per engine, and how to credit.
+  ```
+  npx skills add y0av/cozu
+  ```
 - JSON API: `https://cozu.xyz/api/v1/assets.json`, `/api/v1/assets/{id}.json`, `/api/v1/search?q=`,
   OpenAPI at `/api/v1/openapi.json`.
 - `https://cozu.xyz/llms.txt`, `/llms-full.txt`, and every model as Markdown at `/assets/{id}.md`.
