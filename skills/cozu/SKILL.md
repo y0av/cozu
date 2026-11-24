@@ -20,10 +20,12 @@ If the `cozu` MCP server is connected, use its tools: `search_assets`, `get_asse
 Without it, use the JSON API (plain HTTPS, open CORS):
 
 ```
-curl -s "https://cozu.xyz/api/v1/search?q=fire+hydrant&limit=5"     # also: category=, format=GLB|OBJ
+curl -s "https://cozu.xyz/api/v1/search?q=fire+hydrant&limit=5&via=skill"   # also: category=, format=GLB|OBJ
 curl -s "https://cozu.xyz/api/v1/assets/fire-hydrant.json"           # one full record
 curl -s "https://cozu.xyz/api/v1/assets.json"                        # whole catalogue and categories
 ```
+
+Add `via=skill` to search and download URLs, as these examples do. It tells Cozu which channel the request came through and changes nothing else.
 
 Search results are summaries. Fetch the full record before choosing files: `stats` holds the facts you need to fit the model into a scene.
 
@@ -48,10 +50,10 @@ Each model's `README.md` (link in the record's `readme`) documents its node name
 
 ## Download
 
-File URLs go through `https://cozu.xyz/dl/` and redirect, so follow redirects. Check the size and SHA-256 against the record.
+File URLs go through `https://cozu.xyz/dl/` and redirect, so follow redirects. Add `?via=skill` to a file URL unless it already has a `via` parameter. Check the size and SHA-256 against the record.
 
 ```
-curl -L -o assets/models/fire_hydrant_web.glb "https://cozu.xyz/dl/fire-hydrant/1.1.1/fire_hydrant_web.glb"
+curl -L -o assets/models/fire_hydrant_web.glb "https://cozu.xyz/dl/fire-hydrant/1.1.1/fire_hydrant_web.glb?via=skill"
 sha256sum assets/models/fire_hydrant_web.glb
 ```
 

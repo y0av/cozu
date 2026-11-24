@@ -68,7 +68,8 @@ export function summary(a) {
 }
 
 // download links handed out by the MCP server say so, to count downloads that came through it
-const viaMcp = (text) => text.replace(/(https:\/\/cozu\.xyz\/dl\/[^"?\s]+)/g, '$1?via=mcp');
+const tagVia = (text, via) => text.replace(/(https:\/\/cozu\.xyz\/dl\/[^"?\s]+)/g, `$1?via=${via}`);
+const viaMcp = (text) => tagVia(text, 'mcp');
 const asText = (obj) => ({ content: [{ type: 'text', text: viaMcp(typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2)) }] });
 
 function mcpServer() {
@@ -137,7 +138,7 @@ function mcpCalls(body) {
   }));
 }
 
-const VIA = new Set(['site', 'mcp', 'api', 'llms', 'md']);
+const VIA = new Set(['site', 'mcp', 'api', 'llms', 'md', 'skill']);
 const SAFE = /^[a-z0-9][a-z0-9-]*$/;
 
 /** GET /dl/<asset>/<version>/<path>: count the download, then redirect to the file in Storage. */
@@ -195,11 +196,13 @@ export const api = onRequest({ region: 'us-central1', memory: '256MiB', maxInsta
   if (path === '/api/v1/search') {
     if (req.method !== 'GET') { res.status(405).json({ error: 'Use GET' }); return; }
     try {
+      // a caller that names itself (via=skill) gets download URLs tagged the same way, so its downloads count too
+      const via = VIA.has(req.query.via) ? req.query.via : undefined;
       const data = await catalog();
       const results = search(data, { query: req.query.q, category: req.query.category, format: req.query.format, limit: req.query.limit });
-      await track(GA_MP_SECRET.value(), caller(req), 'api_search', { query: req.query.q, category: req.query.category, file_format: req.query.format, results: results.length }, 'agent');
+      await track(GA_MP_SECRET.value(), caller(req), 'api_search', { query: req.query.q, category: req.query.category, file_format: req.query.format, results: results.length, via }, 'agent');
       res.set('Cache-Control', 'public, max-age=60, s-maxage=300');
-      res.json({ count: results.length, results });
+      res.json(via ? JSON.parse(tagVia(JSON.stringify({ count: results.length, results }), via)) : { count: results.length, results });
     } catch (e) {
       res.status(502).json({ error: 'The catalog is unreachable; try again shortly.' });
     }

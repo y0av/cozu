@@ -83,7 +83,9 @@ script, headless, link_preview, ...).
   `search`, `view_3d`, `copy_credit`. Cookies are off by default in the EEA, the UK and Switzerland.
 - **Downloads, API, MCP:** the Cloud Function counts each call and sends it with the Measurement Protocol
   (`functions/track.js`): `download` (every file URL goes through `/dl/`, which redirects to Storage),
-  `api_search`, `mcp_call`.
+  `api_search`, `mcp_call`. A `via` parameter says where a download or search came from: `site`, `mcp`,
+  `api`, `llms`, `md` or `skill` (the agent skill adds `via=skill`, and search results asked for with it hand
+  back download URLs tagged the same way).
 - **Crawlers and agents reading pages or files:** Hosting request logging is on; the log sink
   `hosting-to-analytics` sends entries to the Pub/Sub topic `hosting-requests`, whose push subscription
   `hosting-requests-to-api` delivers them to the function (`/_ingest/hosting`), which sends
