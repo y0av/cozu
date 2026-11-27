@@ -62,7 +62,7 @@ export function summary(a) {
     page: a.page, json: `${SITE}/api/v1/assets/${a.id}.json`,
     license: a.license.id, attribution: a.attribution.text,
     preview: a.previews[0]?.url,
-    triangles: a.stats?.triangles, rigged: a.stats?.rigged,
+    triangles: a.stats?.triangles, rigged: a.stats?.rigged, moving: a.moving?.summary,
     downloads: a.downloads.map((d) => ({ label: d.label, url: d.url, bytes: d.bytes })),
   };
 }

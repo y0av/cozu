@@ -73,6 +73,7 @@ export function toApi(entry) {
     formats: entry.formats,
     engines: entry.engines,
     stats: entry.stats,
+    moving: entry.moving ?? null,
     previews: entry.previews.map((p) => ({ ...file(p.file), alt: p.alt })),
     viewer: entry.viewer ? file(entry.viewer) : null,
     readme: entry.readme ? file(entry.readme) : null,

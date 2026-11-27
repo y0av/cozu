@@ -31,7 +31,8 @@ Search results are summaries. Fetch the full record before choosing files: `stat
 
 - `stats.size_m`: bounding box in metres (x, y, z). Use it to check the model suits the scene, and never rescale by guesswork.
 - `stats.lods`: triangles per level of detail, LOD0 first.
-- `stats.rigged`, `stats.collision`: whether rigged and collision files exist.
+- `stats.rigged`, `stats.collision`: whether rigged and collision files exist. `stats.rigged` means a skeleton rig.
+- `moving`: what moves without a skeleton. `summary` in a few words (`None` when nothing moves) and `parts`, each with its `name`, the GLB `nodes` that move, its `motion` and its `range`. Each moving node has its pivot at its hinge, axle or slide: rotate or translate it directly.
 - `stats.units`, `stats.up`, `stats.front`: metres, +Y up, front toward +Z on every model.
 
 ## Pick the files

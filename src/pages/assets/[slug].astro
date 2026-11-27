@@ -34,10 +34,13 @@ if (asset.readme) {
 }
 
 const s = asset.stats || {};
+// what moves (catalog `moving`): a short summary for the facts, one item per part for the section below
+const moving = asset.moving;
 const facts = [
   s.triangles && ['Triangles', `${s.triangles.toLocaleString('en-US')}${s.lods ? ' (LOD0)' : ''}`],
   s.lods && ['Levels of detail', `${s.lods.length}`],
   ['Formats', asset.formats.join(', ')],
+  moving?.summary && ['Moving parts', moving.summary],
   s.rigged !== undefined && ['Rigged', s.rigged ? 'Yes' : 'No'],
   ['License', lic.short],
 ].filter(Boolean);
@@ -181,6 +184,20 @@ const title = `${asset.title}: free ${asset.formats.join(' and ')} ${asset.type 
       </dl>
     </div>
   </section>
+
+  {moving?.parts?.length > 0 && (
+    <section class="section section--page" id="moving" aria-labelledby="moving-h">
+      <div class="wrap grid">
+        <div class="span-5 stack-4">
+          <h2 id="moving-h">Moving parts</h2>
+          <p class="muted">Each moving part is a separate node with its pivot at its hinge, axle or slide, so it turns or slides in any engine without a skeleton rig.{readme && <> The <a class="link" href="#docs">documentation</a> gives the pivots and how to drive them.</>}</p>
+        </div>
+        <dl class="specs span-7">
+          {moving.parts.map((p) => <><dt>{p.name}</dt><dd>{p.motion} Range: {p.range}.<br /><span class="t-small muted">Nodes: {p.nodes.join(', ')}</span></dd></>)}
+        </dl>
+      </div>
+    </section>
+  )}
 
   {readme && (
     <section class="section section--page" id="docs" aria-labelledby="docs-h">

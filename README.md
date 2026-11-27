@@ -44,7 +44,7 @@ src/content/assets/   generated: the catalog from Storage, one JSON file per mod
 src/lib/              site constants, licences, the catalog and its Markdown form
 src/pages/            pages and the generated API endpoints
 functions/            the MCP server and search
-scripts/              publish-asset.mjs (publish a model), fetch-catalog.mjs (catalog for the build), who-is-calling.mjs, check-brackets.py,
+scripts/              publish-asset.mjs (publish a model), patch-catalog.mjs (set facts on published entries), fetch-catalog.mjs (catalog for the build), who-is-calling.mjs, check-brackets.py,
                       indexnow.mjs (tell search engines which pages a deploy changed)
 .github/workflows/     deploy.yml: deploy Hosting and the Cloud Function on every push to main
 public/kit/           the design kit (MIT, see public/kit/LICENSE.txt)
@@ -62,6 +62,10 @@ npm run publish-asset -- <entry.json> <package folder> [zip file]
 It uploads the package to `assets/<id>/<version>/` (a version already in Storage is refused: bump it),
 fills the entry's file list with sizes and checksums, writes the entry to `catalog/<id>.json`, and starts
 the deploy workflow. That needs `gcloud` signed in with write access to the bucket and `gh` signed in.
+
+Facts the package does not change (today `moving`, what moves) can be set on published entries without a
+new version: `node scripts/patch-catalog.mjs <dir>`, with one `<id>.json` of fields per model in `<dir>`
+(`--dry-run` first). It writes the entries back to `catalog/` and starts one deploy.
 
 GitHub Actions (`.github/workflows/deploy.yml`) builds and deploys the site on every push to `main` and on
 demand, and deploys the Cloud Function when its code changed. The sitemap, JSON API, Markdown pages and

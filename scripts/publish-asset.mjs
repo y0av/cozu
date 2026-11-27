@@ -18,6 +18,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { BUCKET } from '../src/lib/site.mjs';
+import { movingProblems } from './catalog-checks.mjs';
 
 const flags = new Set(process.argv.slice(2).filter((a) => a.startsWith('--')));
 const [entryPath, pkgDir, zipFile] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
@@ -30,6 +31,8 @@ const { slug, version } = entry;
 if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) throw new Error(`bad slug "${slug}"`);
 if (!/^\d+\.\d+\.\d+$/.test(version || '')) throw new Error(`bad version "${version}"`);
 const prefix = `assets/${slug}/${version}/`;
+const movingBad = movingProblems(entry.moving);
+if (movingBad.length) throw new Error(movingBad.join('; '));
 
 const ls = spawnSync('gcloud', ['storage', 'ls', `gs://${BUCKET}/${prefix}`], { encoding: 'utf8' });
 if (ls.status === 0 && ls.stdout.trim() && !flags.has('--force')) {

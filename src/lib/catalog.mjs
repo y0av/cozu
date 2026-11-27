@@ -41,6 +41,8 @@ export function assetMarkdown(a) {
     `- Version: ${a.version}, updated ${a.updated}`,
     `- Formats: ${a.formats.join(', ')}`,
     s.triangles ? `- Triangles: ${s.triangles.toLocaleString('en-US')}${s.lods ? ` (LODs: ${s.lods.map((n) => n.toLocaleString('en-US')).join(', ')})` : ''}` : null,
+    a.moving?.summary ? `- Moving parts: ${a.moving.summary}` : null,
+    ...(a.moving?.parts || []).map((p) => `  - ${p.name}: ${p.motion} Range: ${p.range}. Nodes: ${p.nodes.join(', ')}`),
     s.rigged !== undefined ? `- Rigged: ${s.rigged ? 'yes' : 'no'}` : null,
     s.size_m ? `- Size: ${s.size_m.join(' x ')} m (width x height x length), ${s.up} up, front ${s.front}` : null,
     `- Works in: ${a.engines.join(', ')}`,
